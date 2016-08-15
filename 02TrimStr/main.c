@@ -10,5 +10,5 @@ int main()
     leading(instring);          //- Remove leading blanks
     trailing(instring);             //- Remove trailing blanks
     printf("output = '%s'\n", instring);    //- Print modified string
-return 1;
+    return 0;
 }

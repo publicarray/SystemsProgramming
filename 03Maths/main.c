@@ -64,6 +64,6 @@ int main() {
     if (option > ARRLEN(mathsFuncs)) {printf("Error: Incorrect Option\n");return 1;}
     generate(mathsFuncs[--option], xStart, xFinal, xStepSize);
 
-    return 1;
+    return 0;
 }
 

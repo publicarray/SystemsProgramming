@@ -37,4 +37,5 @@ int main() {
     t2 = clock();
     float diff2 = (float) (t2 - t1);
     printf("copyAB: %f CopyBA: %f\n", diff1, diff2);
+    return 0;
 }
