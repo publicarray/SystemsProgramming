@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <math.h>
 #define ARRLEN(x) (sizeof(x) / sizeof((x)[0]))
+// #define ARRLEN(x) (sizeof (x) / sizeof(*x))
+
 
 double multiply(double x) {
     return x*x;
@@ -51,7 +53,7 @@ int main(int argc, char const *argv[]) {
     double nums[argc];
     Func mathsFuncs[] = {sin, cos, tan, log, sqrt, multiply, multiply2, magicFunc, delimiter, oneDevideXX};
 
-    if (argc <= 1) {printf("usage: prog <args>\nPlease enter the values of x separated by spaces\n"); return 1;}
+    if (argc <= 1) {printf("usage: %s <args>\nPlease enter the values of x separated by spaces\n", argv[0]); return 1;}
 
     double temp = 0;
     for (i = 0; i < items; i++) {
@@ -73,6 +75,6 @@ int main(int argc, char const *argv[]) {
     scanf("%i", &option);
 
     if (option > ARRLEN(mathsFuncs)) {printf("Error: Incorrect Option\n"); return 1;}
-    generate(mathsFuncs[--option], nums, items);
+    generate(mathsFuncs[option-1], nums, items);
     return 0;
 }
