@@ -27,6 +27,8 @@ int QueueAdd(int a, int n)
     if (root == NULL || root->data < a) { // if it's the first item or is less than the root's data
         root = newNode;
         root->next = temp;
+        size++;
+        return 0;
     } else {
         while(temp != NULL) {
             if (temp->data >= a && (temp->next == NULL || temp->next->data < a)) {
@@ -41,7 +43,7 @@ int QueueAdd(int a, int n)
     return 1; // this should not happen
 }
 //--- Remove from queue ---
-int QueueDel(int n)
+int QueueDel(int a, int n)
 {
     if (size <= 0) {
         return 1;
@@ -66,4 +68,5 @@ void QueuePrint()
         printf("%i ", temp->data);
         temp = temp->next;
     }
+    printf("\n");
 }
