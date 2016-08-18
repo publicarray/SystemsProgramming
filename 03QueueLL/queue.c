@@ -24,12 +24,12 @@ int QueueAdd(int a, int n)
 
     Node *temp = root;
 
-    if (root == NULL || root->data > a) { // if it's the first item or is less than the root's data
+    if (root == NULL || root->data < a) { // if it's the first item or is less than the root's data
         root = newNode;
         root->next = temp;
     } else {
         while(temp != NULL) {
-            if (temp->data <= a && (temp->next == NULL || temp->next->data > a)) {
+            if (temp->data >= a && (temp->next == NULL || temp->next->data < a)) {
                 newNode->next = temp->next;
                 temp->next = newNode;
                 size++;
