@@ -1,4 +1,13 @@
+# compiled objects
 *.o
+
+# debug information
 *.dSYM
+
+# compiled and linked binaries
 a.out
 prog
+*.exe
+
+# wine specific file
+.windows-serial
