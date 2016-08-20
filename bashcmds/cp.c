@@ -50,6 +50,7 @@ int main(int argc, char const *argv[]) {
 
     if (outFileExists == 0) { // file exists
         if (S_ISDIR(foutAttributes.st_mode)) { // check if the path is a directory
+            // TODO: append infile name to the end of the outfilepath
             // char temp [400];
             if (strrchr(inFilePath, '/')) {
                 // char* outFilePath = outFilePath + strrchr(inFilePath, '/')+1
@@ -58,11 +59,11 @@ int main(int argc, char const *argv[]) {
             }
             puts("Please specify a file name.");
             return 1;
-        } else {
-            char option[1]; // ask do you want to override the file?
+        } else { // ask do you want to override the file?
+            char option[1];
             printf("overwrite %s? (y/n [n]): ", outFilePath);
             scanf("%1c", option);
-            if (tolower(*option) != 'y') { // do not overwrite unless the the user approved
+            if (tolower(*option) != 'y') { // do not overwrite unless the user approved
                 puts("not overwritten");
                 return 0;
             }
