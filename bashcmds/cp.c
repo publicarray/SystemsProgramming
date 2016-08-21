@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <errno.h>
 #include <sys/stat.h>
-#define BUFFER_SIZE 16384
+#define BUFFER_SIZE 16384 // read this many bytes at a time
 
 struct stat foutAttributes;
 
 int copy(const char* inFilePath, const char* outFilePath) {
     FILE *fin, *fout; // input and output files
     char buffer[BUFFER_SIZE];
-    int count;
+    size_t bytesIn, bytesOut;
 
     fin = fopen(inFilePath, "rb");
     fout = fopen(outFilePath, "wb");
@@ -18,20 +19,32 @@ int copy(const char* inFilePath, const char* outFilePath) {
         fclose(fin);
         fclose(fout);
         perror(inFilePath);
-        return 1;
+        return errno;
     }
 
     // copy from fin to fout
-    while ((count = fread(buffer, 1, BUFFER_SIZE, fin)) > 0) {
-        fwrite(buffer, 1, count, fout);
+    while ((bytesIn = fread(buffer, 1, BUFFER_SIZE, fin)) > 0) {
+        bytesOut = fwrite(buffer, 1, bytesIn, fout);
+        if (bytesIn != bytesOut) { // check that the same number of bytes are read & written
+            fclose(fin);
+            fclose(fout);
+            perror("Fatal write error");
+            return errno;
+        }
     }
 
     // other IO errors
     if (ferror(fin)) {
-        puts("I/O error while reading");
+        fclose(fin);
+        fclose(fout);
+        perror("");
+        return errno;
     }
     if (ferror(fout)) {
-        puts("I/O error while writing");
+        fclose(fin);
+        fclose(fout);
+        perror("");
+        return errno;
     }
 
     fclose(fin);
@@ -39,9 +52,10 @@ int copy(const char* inFilePath, const char* outFilePath) {
     return 0;
 }
 
+// TODO: add -f flag
 int main(int argc, char const *argv[]) {
 
-    if (argc <= 2) {printf("usage: %s source_file target_file\n", argv[0]); return 1;} // if missing parameters
+    if (argc != 3) {printf("usage: %s source_file target_file\n", argv[0]); return 1;} // if missing parameters
 
     const char* inFilePath = argv[1];
     const char* outFilePath = argv[2];
@@ -53,6 +67,7 @@ int main(int argc, char const *argv[]) {
             // TODO: append infile name to the end of the outfilepath
             // char temp [400];
             if (strrchr(inFilePath, '/')) {
+                // strcpy
                 // char* outFilePath = outFilePath + strrchr(inFilePath, '/')+1
             } else {
                 // outFilePath + inFilePath;
