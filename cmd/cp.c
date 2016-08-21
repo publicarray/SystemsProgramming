@@ -29,6 +29,7 @@ int copy(const char* inFilePath, const char* outFilePath) {
             fclose(fin);
             fclose(fout);
             perror("Fatal write error");
+            // TODO: cleanup in the event of error
             return errno;
         }
     }
