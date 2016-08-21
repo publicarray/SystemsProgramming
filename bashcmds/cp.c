@@ -58,30 +58,28 @@ int main(int argc, char const *argv[]) {
     if (argc != 3) {printf("usage: %s source_file target_file\n", argv[0]); return 1;} // if missing parameters
 
     const char* inFilePath = argv[1];
-    const char* outFilePath = argv[2];
+
+    size_t outFilePathLen = strlen(inFilePath) + strlen(argv[2]);
+    char outFilePath[outFilePathLen];
+    strcpy(outFilePath, argv[2]);
 
     int outFileExists = stat(outFilePath, &foutAttributes); // 0=yes -1=no
 
     if (outFileExists == 0) { // file exists
         if (S_ISDIR(foutAttributes.st_mode)) { // check if the path is a directory
-            // TODO: append infile name to the end of the outfilepath
-            // char temp [400];
             if (strrchr(inFilePath, '/')) {
-                // strcpy
-                // char* outFilePath = outFilePath + strrchr(inFilePath, '/')+1
+                sprintf(outFilePath, "%s%s", outFilePath, strrchr(inFilePath, '/')); // append in file name to out path
             } else {
-                // outFilePath + inFilePath;
+                sprintf(outFilePath, "%s/%s", outFilePath, inFilePath); // append in file name to out path
             }
-            puts("Please specify a file name.");
-            return 1;
-        } else { // ask do you want to override the file?
-            char option[1];
-            printf("overwrite %s? (y/n [n]): ", outFilePath);
-            scanf("%1c", option);
-            if (tolower(*option) != 'y') { // do not overwrite unless the user approved
-                puts("not overwritten");
-                return 0;
-            }
+        }
+        // ask do you want to override the file?
+        char option[1];
+        printf("overwrite %s? (y/n [n]): ", outFilePath);
+        scanf("%1c", option);
+        if (tolower(*option) != 'y') { // do not overwrite unless the user approved
+            puts("not overwritten");
+            return 0;
         }
     }
 
