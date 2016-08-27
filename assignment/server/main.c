@@ -1,55 +1,26 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-// #include "String.h"
-#include "common.h"
 
-int main(int argc, char const *argv[])
+#include <sys/socket.h>
+#include <unistd.h>
+// #include <../lib.h>
+
+int main()
 {
 
-    // char command[3000];
-    char* command = malloc(3000);
-    if (command == NULL) {
-        printf ("Failed to allocate memory\n");
-        return 1;
+    int sock = makeServerSocket(80, 5);
+
+    if (sock < 0) {
+        exit(-1);
     }
 
-    while(1) {
-        fgets(command, sizeof command, stdin);
-
-        /* Remove trailing newline, if it's there. */
-        if ((strlen(command) > 0) && (command[strlen (command) - 1] == '\n')) {
-             command[strlen (command) - 1] = '\0';
+    while (1) {
+        int fd = accept(sock, NULL, NULL);
+        if (fd < 0) {
+            break;
         }
-
-        // scanf("%s", command);
-        // if (strcmp(command, "calc") == 0) {
-        //     char expression [2000];
-        //     scanf("%s", expression);
-        //     calulate(expression);
-        // }
-
-        // if (strcmp(command, "time") == 0) {
-        //     localTime();
-        // }
-
-        // if (strcmp(command, "path") == 0) {
-        //     path();
-        // }
-
-        if (strcmp(command, "dump") == 0) {
-            char pathname [2000];
-            scanf("%s", pathname);
-            dump(pathname);
-        }
-
-        if (strcmp(command, "list") == 0) {
-            char pathname [2000] = ".";
-            // scanf("%s", pathname);
-            listdir(pathname);
-        }
+        // process_request(fd);
+        close(fd);
     }
-
-    free (command);
     return 0;
 }
