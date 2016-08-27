@@ -3,23 +3,28 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
-// #include <../lib.h>
+#include "../lib.h"
 
 int main()
 {
 
-    int sock = makeServerSocket(80, 5);
+    char buf [5000];
+    int server = makeServerSocket(5000);
+    // SSocket com = server.accept(&server);
 
-    if (sock < 0) {
+    if (server < 0) {
         exit(-1);
     }
 
     while (1) {
-        int fd = accept(sock, NULL, NULL);
+        int fd = accept(server, NULL, NULL);
         if (fd < 0) {
+            puts("null");
             break;
         }
-        // process_request(fd);
+        int count = read(fd, buf, sizeof(buf));
+        buf[count] = 0x0;
+        puts(buf);
         close(fd);
     }
     return 0;

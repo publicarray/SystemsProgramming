@@ -9,7 +9,7 @@
 // #import <netinet6/in6.h>
 // #import <ifaddrs.h>
 
-int makeServerSocket(int portnum, int backlog)
+int makeServerSocket(int portnum)
 {
     int HOSTLEN = 400;
 
@@ -21,7 +21,10 @@ int makeServerSocket(int portnum, int backlog)
     char hostname [HOSTLEN];                        //‐ address
 
     int sock_id = socket(AF_INET, SOCK_STREAM, 0);  //‐ get a socket
-    if (sock_id == -1 ) return -1;
+    if (sock_id == -1 ) {
+        puts("unable to create a socket");
+        return -1;
+    }
     //‐‐ build address and bind it to socket ‐‐
     bzero((void*)&saddr, sizeof(saddr));
 
@@ -33,9 +36,11 @@ int makeServerSocket(int portnum, int backlog)
     saddr.sin_port = htons(portnum);        //‐ fill in socket port
     // saddr.sin_addr = htonl(INADDR_ANY);
     if (bind(sock_id, (struct sockaddr * )&saddr, sizeof(saddr)) != 0) {
+        puts("unable to bind to an interface");
         return -1;
     }
-    if (listen(sock_id, backlog) != 0) {  //‐‐ wait for incoming calls return sock_id;
+    if (listen(sock_id, 5) != 0) {  //‐‐ wait for incoming calls return sock_id;
+        puts("unable listen to the socket");
         return -1;
     }
     return sock_id;
