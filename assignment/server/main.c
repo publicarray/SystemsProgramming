@@ -11,7 +11,54 @@
 // #include "../../01StringAndList/List.h"
 
 void console(char *request, String *response) {
-    strConcatCS(response, request);
+    // reset getopt
+    optreset = 1;
+    optind = 1;
+
+
+    // opterr = 0; // disable getopt's own error messages e.g. case '?'
+    int c, fflag = 0, lflag = 0, argCount = 0, maxArguments = 10;
+    // char inStr[3000];
+    char *arguments[maxArguments];
+    // char tempbuf[200];
+    // Remove trailing newline
+    removeNewLine(request);
+    argCount = splitStr(request, arguments, maxArguments);
+    // printf("argCount: %i\n", argCount);
+    while ((c = getopt(argCount, arguments, "fl")) != EOF) {
+        switch (c) {
+            case 'f':
+                fflag = 1;
+                break;
+            case 'l':
+                lflag = 1;
+                break;
+            case '?':
+                response->length += sprintf(response->data+response->length, "invalid option: -%c\n", optopt);
+                // sprintf(tempbuf, "invalid option: -%c\n", optopt);
+                // strConcatCS(response, tempbuf);
+        }
+    }
+
+    if (fflag) printf("Option f is set\n");
+    if (lflag) printf("Option l is set\n");
+
+    argCount -= optind;
+    // printf("argCount (after): %i\n", argCount);
+    if (argCount > 0 && strcmp(arguments[0], "dump") == 0) {
+        dump(arguments[1]);
+    }
+
+    if (arguments[0] && strcmp(arguments[0], "list") == 0) {
+         if (argCount == 0) {
+            listdir(".", response); // if no arguments use current directory
+        } else if (argCount > 0) {
+            listdir(arguments[optind], response);
+        }
+    }
+
+    // printf("response-> length:%i bufferlength:%i\n", response->length, response->bufferLength);
+    // strConcatCS(response, request);
     strAddChar(response, '\n');
 }
 
@@ -49,11 +96,13 @@ int newThread (Socket com) {
             puts("Error reading input from client");
             break;
         }
+
         console(buffer, &response);
     }
 
     com.write(&com, response.data, response.length);
     com.close(&com);
+    strFree(&response);
     exit(0);// exit child
 };
 

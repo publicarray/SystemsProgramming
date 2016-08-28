@@ -38,14 +38,11 @@ void strConcat(String* self, String* input) {
 }
 
 void strConcatCS(String* self, char* input) {
-    int newLength = self->length + strlen(input);
-    // printf("length2:%i\n", sizeof(int));
-
-    strResize(self, self->bufferLength);
+    strResize(self, strlen(input));
     for (int i = 0; i < strlen(input); i++) {
         self->data[self->length + i] = input[i];
     }
-    self->length = newLength;
+    self->length += strlen(input);
 }
 
 void strConcatI(String* self, int input) { // TODO: Refactor
@@ -71,33 +68,26 @@ int strParseInt(String* self) {
     // return number;
 }
 
-void strPrint(String*  self) {
+void strPrint(String* self) {
     printf("%s\n", self->data);
 }
 
-void strFree(String*  self) {
+void strFree(String* self) {
     free(self->data);
     self->bufferLength = 0;
     self->length = 0;
 }
 
 void strResize(String* self, int newSize) {
-    if (newSize > self->bufferLength) {
-        self->bufferLength = newSize;
-        self->data = realloc(self->data, sizeof(char) * self->bufferLength); // TODO: error checking
+    if (self->bufferLength <= self->length+newSize) {
+        strIncBufSize(self, newSize);
     }
-    // void* newData = malloc(sizeOfInput);
-    // memcpy(newData, ptr, sizeOfInput);
-    // self->data[self->length] = newData;
-    // self->length++;
-    // return newData;
 }
 
 void strIncBufSize(String* self, int addSize) {
-    if (addSize > 0) {
-        self->bufferLength = self->bufferLength + addSize;
-        self->data = realloc(self->data, sizeof(char) * self->bufferLength); // TODO: error checking
-    }
+    addSize = (self->bufferLength < addSize) ? addSize : self->bufferLength;
+    self->bufferLength = self->bufferLength + addSize;
+    self->data = realloc(self->data, sizeof(char) * self->bufferLength); // TODO: error checking
 }
 
 // void splitString(String* self, char delemiter) {
@@ -117,7 +107,7 @@ int srtRead(String* self, FILE * fd) {
 
     while (!feof(fd) && self->data[last] != '\n') {
         size += BUFSIZ;
-        strIncBufSize(self, size);
+        strResize(self, size);
 
         if (fgets(self->data+last, size, fd) != NULL) {
             self->length = strlen(self->data);

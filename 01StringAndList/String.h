@@ -25,7 +25,7 @@ void strFree(String* self);
 void strResize(String* self, int newSize);
 
 // charAt (String* self, int num)
-//
+void strIncBufSize(String* self, int addSize);
 int srtRead(String* self, FILE * fd);
 
 #endif
