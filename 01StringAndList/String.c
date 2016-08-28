@@ -41,7 +41,7 @@ void strConcatCS(String* self, char* input) {
     int newLength = self->length + strlen(input);
     // printf("length2:%i\n", sizeof(int));
 
-    strResize(self, newLength);
+    strResize(self, self->bufferLength);
     for (int i = 0; i < strlen(input); i++) {
         self->data[self->length + i] = input[i];
     }
@@ -93,6 +93,13 @@ void strResize(String* self, int newSize) {
     // return newData;
 }
 
+void strIncBufSize(String* self, int addSize) {
+    if (addSize > 0) {
+        self->bufferLength = self->bufferLength + addSize;
+        self->data = realloc(self->data, sizeof(char) * self->bufferLength); // TODO: error checking
+    }
+}
+
 // void splitString(String* self, char delemiter) {
 //     int n = 0;
 //     char *tokens[100];
@@ -101,3 +108,23 @@ void strResize(String* self, int newSize) {
 //         tokens[n] = strtok(NULL, "," );
 //     }
 // }
+
+
+// https://sucs.org/Knowledge/Help/Program%20Advisory/Reading%20an%20arbitrarily%20long%20line%20in%20C
+int srtRead(String* self, FILE * fd) {
+    size_t size = 0;
+    size_t last = 0;
+
+    while (!feof(fd) && self->data[last] != '\n') {
+        size += BUFSIZ;
+        strIncBufSize(self, size);
+
+        if (fgets(self->data+last, size, fd) != NULL) {
+            self->length = strlen(self->data);
+            last = self->length - 1;
+        } else {
+            return 1;
+        }
+    }
+    return 0;
+}

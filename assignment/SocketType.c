@@ -62,7 +62,7 @@ static void __setup(Server *self) {
         error_out("Failed to bind to an interface, port may be in use [__setup()]");
     }
 
-    int backlog = 5;
+    int backlog = 50;
     listen(self->socket.socket, backlog);
 }
 
@@ -96,6 +96,7 @@ Client newClient(char * address, int port, int * error) {
     memcpy(&serv_addr.sin_addr.s_addr, server_name->h_addr, server_name->h_length);
     serv_addr.sin_port = htons(port);
     if (connect(ret.socket, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+        printf("Error creating connection to %s at port %i.\n", address, port);
         *error = 1;
     } else {
         *error = 0;

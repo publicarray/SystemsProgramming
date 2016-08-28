@@ -1,6 +1,8 @@
 #ifndef STRING_H
 #define STRING_H
 
+#include <stdio.h>
+
 typedef struct String_Struct {
     unsigned int bufferLength;
     unsigned int length;
@@ -23,5 +25,7 @@ void strFree(String* self);
 void strResize(String* self, int newSize);
 
 // charAt (String* self, int num)
+//
+int srtRead(String* self, FILE * fd);
 
 #endif

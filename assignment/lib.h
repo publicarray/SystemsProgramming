@@ -1,7 +1,8 @@
 #ifndef LIB_H
 #define LIB_H
 
-int makeServerSocket(int portnum);
+int strLen(char *string);
+void removeNewLine (char* inStr);
 int splitStr(char* srcString, char* tokens[], int maxTokens);
 
 #endif
