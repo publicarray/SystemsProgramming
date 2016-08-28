@@ -4,7 +4,7 @@
 #include "string.h"
 
 void strInit(String* self) {
-    self->bufferLength = 50;
+    self->bufferLength = BUFSIZ; // BUFSIZ size of the buffer used by setbuf, may be an optimised size for the OS
     self->length = 0;
     self->data = (char *) malloc(sizeof(char *) * self->bufferLength);
 }
@@ -21,7 +21,7 @@ int strLength(String* self) {
 }
 
 void strAddChar(String* self, char c) {
-    strResize(self, self->length + 1);
+    strResize(self, 1);
     self->data[self->length] = c;
     self->data[++self->length] = '\0';
     // self->length[];
@@ -43,6 +43,7 @@ void strConcatCS(String* self, char* input) {
         self->data[self->length + i] = input[i];
     }
     self->length += strlen(input);
+    // printf("self-> length:%i bufferlength:%i\n", self->length, self->bufferLength);
 }
 
 void strConcatI(String* self, int input) { // TODO: Refactor
@@ -79,13 +80,14 @@ void strFree(String* self) {
 }
 
 void strResize(String* self, int newSize) {
+    // printf("rezize?  bufferlength: %i <= length+newSize: %i\n", self->bufferLength, self->length+newSize);
     if (self->bufferLength <= self->length+newSize) {
         strIncBufSize(self, newSize);
     }
 }
 
 void strIncBufSize(String* self, int addSize) {
-    addSize = (self->bufferLength < addSize) ? addSize : self->bufferLength;
+    addSize = (BUFSIZ < addSize) ? addSize : BUFSIZ; // doubling the buffer is generally better unless the addSize is bigger than the buffer
     self->bufferLength = self->bufferLength + addSize;
     self->data = realloc(self->data, sizeof(char) * self->bufferLength); // TODO: error checking
 }

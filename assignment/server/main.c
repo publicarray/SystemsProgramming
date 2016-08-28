@@ -57,7 +57,6 @@ void console(char *request, String *response) {
         }
     }
 
-    // printf("response-> length:%i bufferlength:%i\n", response->length, response->bufferLength);
     // strConcatCS(response, request);
     strAddChar(response, '\n');
 }
