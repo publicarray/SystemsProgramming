@@ -79,17 +79,13 @@ void strFree(String* self) {
     self->length = 0;
 }
 
-void strResize(String* self, int newSize) {
+void strResize(String* self, int addSize) {
     // printf("rezize?  bufferlength: %i <= length+newSize: %i\n", self->bufferLength, self->length+newSize);
-    if (self->bufferLength <= self->length+newSize) {
-        strIncBufSize(self, newSize);
+    if (self->bufferLength <= self->length+addSize) {
+        addSize = (BUFSIZ < addSize) ? addSize : BUFSIZ; // doubling the buffer is generally better unless when addSize is bigger than the buffer
+        self->bufferLength = self->bufferLength + addSize; // increase the size
+        self->data = realloc(self->data, sizeof(char) * self->bufferLength); // TODO: error checking
     }
-}
-
-void strIncBufSize(String* self, int addSize) {
-    addSize = (BUFSIZ < addSize) ? addSize : BUFSIZ; // doubling the buffer is generally better unless the addSize is bigger than the buffer
-    self->bufferLength = self->bufferLength + addSize;
-    self->data = realloc(self->data, sizeof(char) * self->bufferLength); // TODO: error checking
 }
 
 // void splitString(String* self, char delemiter) {
