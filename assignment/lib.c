@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <ctype.h>
+
 
 int strLen(char *string) {
     int length = 0;
@@ -12,6 +14,12 @@ int strLen(char *string) {
 void removeNewLine (char* inStr) {
     if ((strLen(inStr) > 0) && (inStr[strLen(inStr) - 1] == '\n')) {
          inStr[strLen(inStr) - 1] = '\0';
+    }
+}
+
+void strToLower(char *string) {
+    for(int i = 0; string[i]; i++){
+        string[i] = tolower(string[i]);
     }
 }
 

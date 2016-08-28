@@ -40,9 +40,13 @@ int newThread (Socket com) {
         count = com.read(&com, buffer, sizeof(buffer));
         buffer[count] = 0x0;
         removeNewLine(buffer);
+        // strToLower(buffer);
         puts(buffer); // log request
 
-        if (strcmp(buffer, "quit") == 0) {
+        if (count == 0 || strcmp(buffer, "quit") == 0) { // when count = 0 the peer closed it's half of the connection
+            break;
+        } else if (count == -1) {
+            puts("Error reading input from client");
             break;
         }
         console(buffer, &response);
