@@ -2,10 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "../../SocketType.h"
-#include "../lib.h"
+#include "../SocketType.h"
+#include "../assignment/lib.h"
 
-// cc -O3 main.c ../../SocketType.c ../lib.c -o client && ./client -p 8080 localhost
 int main(int argc, char *argv[])
 {
     opterr = 0; // disable getopt's own error messages e.g. case '?'
@@ -32,7 +31,7 @@ int main(int argc, char *argv[])
 
 //
     initSocket();
-    int error;
+    int error, count;
 
     Client client = newClient(argv[0], portNumber, &error); // "127.0.0.1", 80
 
@@ -42,14 +41,13 @@ int main(int argc, char *argv[])
             fgets(buffer, sizeof buffer, stdin);
             client.write(&client, buffer, strlen(buffer));
             removeNewLine(buffer);
+            count = client.read(&client, buffer, sizeof(buffer));
+            buffer[count] = 0x0;
+            puts(buffer);
             if (strcmp(buffer, "quit") == 0) {
                 break;
             }
         }
-
-        int count = client.read(&client, buffer, sizeof(buffer));
-        buffer[count] = 0x0;
-        puts(buffer);
     }
 
     client.close(&client);

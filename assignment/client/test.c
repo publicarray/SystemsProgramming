@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "../SocketType.h"
+#include "../../SocketType.h"
 
 int main(int argc, char const *argv[])
 {

@@ -13,6 +13,7 @@ typedef SOCKET SocketType;
 typedef int SocketType;
 #endif
 
+int a;
 typedef struct Socket_Struct {
     SocketType socket;
     void (*close)(struct Socket_Struct *self);

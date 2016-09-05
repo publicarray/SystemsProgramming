@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include <sys/types.h>
+#include <sys/types.h>
 
 #ifdef WIN32
 #include <windows.h>
@@ -13,16 +13,49 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <sys/select.h>
+#include <sys/time.h>
 // #include <ifaddrs.h>
 // #include <netinet/in.h>
 // #include <netinet6/in6.h>
 #endif
 
+// List sockets/clients
+// List id's
+// int i
+// int id
+//
+// int asyncRead(int totalSockets, );
+
+// canRead() {
+//    asyncRead() //select
+// }
+// canAccept(server, seconds2wait, miroseconds2wait)
+
+// popen | piping
+// _popen | piping
 
 static void error_out (char *messgae) {
     printf("Error in SocketType.c: %s\n", messgae);
     exit(1);
+
 }
+
+int canRead(Server *self, int seconds2wait, int microseconds2wait) {
+    struct timeval tv;
+    struct timeval {
+        long tv_sec;          // seconds
+        long tv_usec;         // microseconds
+    };
+    int ready = 0;
+    // asyncRead();
+    if ((ready = select(2, self->socket.socket, NULL, NULL, &tv)) == -1) {
+        perror("select()");
+    }
+    return ready;
+}
+
+// asyncRead(Server *self, int seconds2wait, microseconds2wait, sdin, int ready)
 
 static void Server__close(Server *self) {
     self->socket.close(&self->socket);

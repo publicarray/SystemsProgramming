@@ -6,7 +6,7 @@
 // #include <sys/wait.h>
 // #include <sys/types.h>
 
-#include "../SocketType.h"
+#include "../../SocketType.h"
 
 // static Server server;
 

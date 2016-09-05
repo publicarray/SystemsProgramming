@@ -5,12 +5,11 @@
 #include <signal.h>
 // #include <sys/wait.h>
 // #include <sys/types.h>
-#include "../../SocketType.h"
-#include "../lib.h"
-#include "../../01StringAndList/String.h"
+#include "../SocketType.h"
+#include "../assignment/lib.h"
+#include "../01StringAndList/String.h"
 // #include "../../01StringAndList/List.h"
 
-// cc -g main.c ../../SocketType.c ../lib.c ../../01StringAndList/String.c ls.c cat.c -o server && ./server -p 8080
 void console(char *request, String *response) {
     // reset getopt
     optreset = 1;
@@ -45,21 +44,22 @@ void console(char *request, String *response) {
     if (lflag) printf("Option l is set\n");
 
     argCount -= optind;
+
     // printf("argCount (after): %i\n", argCount);
-    if (argCount > 0 && strcmp(arguments[0], "dump") == 0) {
-        dump(arguments[1]);
+    if (arguments[0] && strcmp(arguments[0], "time") == 0) {
+        localTime(response);
     }
 
     if (arguments[0] && strcmp(arguments[0], "list") == 0) {
          if (argCount == 0) {
-            listdir(".", response); // if no arguments use current directory
+            // listdir(".", response); // if no arguments use current directory
         } else if (argCount > 0) {
-            listdir(arguments[optind], response);
+            // listdir(arguments[optind], response);
         }
     }
 
     // strConcatCS(response, request);
-    strAddChar(response, '\n');
+    // strAddChar(response, '\n');
 }
 
 int newThread (Socket com) {
@@ -98,9 +98,9 @@ int newThread (Socket com) {
         }
 
         console(buffer, &response);
+        com.write(&com, response.data, response.length);
     }
 
-    com.write(&com, response.data, response.length);
     com.close(&com);
     strFree(&response);
     exit(0);// exit child

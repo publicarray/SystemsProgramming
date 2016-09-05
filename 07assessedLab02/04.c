@@ -37,7 +37,13 @@ int splitStr(char* srcString, char* tokens[], int maxTokens)
     return numFound;
 }
 
+void byebye() {
+    puts("bye bye");
+}
+
 int execute(char* cmd) {
+    atexit(byebye); // register exit function
+
     char str[400]; // TODO need to fix this
     strcpy(str, cmd);
 
@@ -56,7 +62,6 @@ int execute(char* cmd) {
         if (out < 0) {
             perror("exec");
         }
-        printf("%i\n",out);
         exit(out);
     } else { // parent
         waitpid(pid, &status, 0);
@@ -65,5 +70,38 @@ int execute(char* cmd) {
 }
 
 int main(int argc, char const *argv[]) {
-    return execute("ls -a -l");
+
+    if (argc == 1) {
+        FILE *fin; // input
+        int BSIZE = 2000;
+        char line[BSIZE]; // buffer
+        int c;
+        int i = 0;
+
+        fin = fopen(argv[1], "r");
+
+        while ((c = fgetc(fin)) > 0) {
+            if (!feof(fin)) {
+                if (c == '\r') {
+                    printf("> %s\n", line);
+                    execute(line);
+                    i = 0;
+                    memset(line, 0x0, BSIZE);
+                } else if (c == '\n') {
+                    printf("> %s\n", line);
+                    execute(line);
+                    i = 0;
+                    memset(line, 0x0, BSIZE);
+                } else {
+                    line[i] = c;
+                    i++;
+                }
+            }
+        }
+        fclose(fin);
+        return 0;
+    } else {
+        puts("usage: programName [fileName]\n");
+        return 1;
+    }
 }

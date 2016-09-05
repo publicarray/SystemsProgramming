@@ -1,0 +1,7 @@
+echo "test number one"
+ls -R -a -l
+whoami
+who -a -H
+pwd
+uptime
+ps -a

@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <sys/wait.h>
+// #include <sys/wait.h>
 #include <string.h>
+#include <process.h>
+
 int strLength(char *string) {
     int length = 0;
     while (string[length] != '\0') {
@@ -47,23 +48,25 @@ int execute(char* cmd) {
     tokens[found] = 0x0;
     int status;
 
-    int pid = fork();
-    if (pid == -1) {
-        perror("fork");
-        return 1;
-    } else if (pid == 0) { // child
-        int out = execvp(tokens[0], tokens);
-        if (out < 0) {
-            perror("exec");
-        }
-        printf("%i\n",out);
-        exit(out);
-    } else { // parent
-        waitpid(pid, &status, 0);
-        return WEXITSTATUS(status);
-    }
+    spawnv(P_NOWAIT, "~", tokens[0]);
+
+    // int pid = fork();
+    // if (pid == -1) {
+    //     perror("fork");
+    //     return 1;
+    // } else if (pid == 0) { // child
+    //     int out = execvp(tokens[0], tokens);
+    //     if (out < 0) {
+    //         perror("exec");
+    //     }
+    //     printf("%i\n",out);
+    //     exit(out);
+    // } else { // parent
+    //     waitpid(pid, &status, 0);
+    //     return WEXITSTATUS(status);
+    // }
 }
 
 int main(int argc, char const *argv[]) {
-    return execute("ls -a -l");
+    return execute("ls");
 }
