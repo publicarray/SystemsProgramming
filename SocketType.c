@@ -42,16 +42,19 @@ static void error_out (char *messgae) {
 }
 
 int canRead(Server *self, int seconds2wait, int microseconds2wait) {
-    struct timeval tv;
+    struct timeval time;
     struct timeval {
         long tv_sec;          // seconds
         long tv_usec;         // microseconds
     };
+    time.tv_usec = 500; // 50ms
+
     int ready = 0;
     // asyncRead();
-    if ((ready = select(2, self->socket.socket, NULL, NULL, &tv)) == -1) {
-        perror("select()");
-    }
+    // if ((ready = select(2, self->socket.socket, NULL, NULL, &time)) == -1) {
+    //     perror("select()");
+    // }
+    printf("%d\n", ready);
     return ready;
 }
 

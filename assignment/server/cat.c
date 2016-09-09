@@ -31,7 +31,7 @@ int dump(const char* filePath) {
         bytesOut = fwrite(buffer, 1, bytesIn, stdout);
         if (bytesIn != bytesOut) { // check that the same number of bytes are read & written
             fclose(file);
-            perror("Fatal write error");
+            perror("cat.c, Fatal write error");
             return errno;
         }
     }
@@ -39,7 +39,7 @@ int dump(const char* filePath) {
     // other IO errors
     if (ferror(file)) {
         fclose(file);
-        perror("");
+        perror("cat.c");
         return errno;
     }
     return 0;

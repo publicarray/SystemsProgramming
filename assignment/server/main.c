@@ -11,6 +11,23 @@
 // #include "../../01StringAndList/List.h"
 
 // cc -g main.c ../../SocketType.c ../lib.c ../../01StringAndList/String.c ls.c cat.c -o server && ./server -p 8080
+
+
+// http://www.microhowto.info/howto/reap_zombie_processes_using_a_sigchld_handler.html
+void childProcessExit (int sig) {
+    int pid;
+    while ((pid = waitpid(-1, 0, WNOHANG)) > 0) {
+        printf("killed: %d!\n", pid);
+        // if (kill(pid, SIGTERM) == -1) { // kill(): No such process
+        //     perror("kill()");
+        // }
+    }
+
+    if (pid == -1) {
+        perror("waitpid()");
+    }
+}
+
 void console(char *request, String *response) {
     // reset getopt
     optreset = 1;
@@ -63,7 +80,6 @@ void console(char *request, String *response) {
 }
 
 int newThread (Socket com) {
-
     int pid = fork();
 
     if (pid == -1) {
@@ -72,12 +88,11 @@ int newThread (Socket com) {
     }
     if (pid != 0) {
         // parent
-        // printf("pid: %d\n", pid); // pid of the child
-        wait(NULL);
-        return 0; // return to main
+        printf("pid: %d\n", pid); // pid of the child
+        return pid; // return pid to main
     }
     // child pid = 0;
-
+    int cpid =  getpid();
     char buffer[3000];
     // char answer[3000];
     String response; strInit(&response);
@@ -88,9 +103,9 @@ int newThread (Socket com) {
         buffer[count] = 0x0;
         removeNewLine(buffer);
         // strToLower(buffer);
-        puts(buffer); // log request
+        printf("%d: %s\n",cpid, buffer); // log request
 
-        if (count == 0 || strcmp(buffer, "quit") == 0) { // when count = 0 the peer closed it's half of the connection
+        if (count == 0 || strcmp(buffer, "quit") == 0 || strcmp(buffer, "exit") == 0) { // when count = 0 the peer closed it's half of the connection
             break;
         } else if (count == -1) {
             puts("Error reading input from client");
@@ -108,6 +123,7 @@ int newThread (Socket com) {
 
 
 int main(int argc, char *argv[]) {
+    signal(SIGCHLD, childProcessExit); // listen when a child exits
 
     opterr = 0; // disable getopt's own error messages e.g. case '?'
     int c, portNumber = 80; // port 80 requires sudo
@@ -144,6 +160,7 @@ int main(int argc, char *argv[]) {
         Socket com = server.accept(&server);
         newThread(com);
     }
+    // newCMD(repom); // new process for each command
 
     server.close(&server);
     delSocket();
