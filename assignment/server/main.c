@@ -1,3 +1,11 @@
+//
+//  main.c
+//  server
+//
+//  Created by Sebastian Schmidt on 9/09/2016.
+//  Copyright © 2016 Sebastian Schmidt. All rights reserved.
+//
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
