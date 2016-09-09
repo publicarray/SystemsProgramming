@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <errno.h> // errno
 // #include <sys/wait.h>
 // #include <sys/types.h>
 #include "../../SocketType.h"
@@ -16,7 +17,7 @@
 // http://www.microhowto.info/howto/reap_zombie_processes_using_a_sigchld_handler.html
 void childProcessExit (int sig) {
     int pid;
-    while ((pid = waitpid(-1, 0, WNOHANG)) > 0) {
+    while ((pid = waitpid(-1, 0, WNOHANG)) > 0) { // non blocking
         printf("killed: %d!\n", pid);
         // if (kill(pid, SIGTERM) == -1) { // kill(): No such process
         //     perror("kill()");
@@ -24,8 +25,28 @@ void childProcessExit (int sig) {
     }
 
     if (pid == -1) {
-        perror("waitpid()");
+        if (errno != 10) { // 10 = No child processes
+            perror("waitpid()");
+        }
     }
+}
+
+void terminate (int sig) {
+    int pid;
+    while ((pid = wait(NULL)) > 0) { // wait for processes to finish
+        printf("killed: %d!\n", pid);
+        // if (kill(pid, SIGTERM) == -1) { // kill(): No such process
+        //     perror("kill()");
+        // }
+    }
+
+    if (pid == -1) {
+        if (errno != 10) { // 10 = No child processes
+            perror("wait()");
+        }
+    }
+
+    exit(0);
 }
 
 void console(char *request, String *response) {
@@ -124,6 +145,8 @@ int newThread (Socket com) {
 
 int main(int argc, char *argv[]) {
     signal(SIGCHLD, childProcessExit); // listen when a child exits
+    signal(SIGINT, terminate); // cleanup
+    signal(SIGQUIT, terminate); // cleanup
 
     opterr = 0; // disable getopt's own error messages e.g. case '?'
     int c, portNumber = 80; // port 80 requires sudo
