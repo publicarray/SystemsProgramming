@@ -5,10 +5,10 @@
 int main(int argc, char const *argv[])
 {
     char command[3000];
-    while(1) {
+    while (1) {
         scanf("%s", command);
         if (strcmp(command, "quit") == 0 || strcmp(command, "exit") == 0) {
-            exit(1);
+            exit(0);
         }
         if (strcmp(command, "calc") == 0) {
             char expression [2000];

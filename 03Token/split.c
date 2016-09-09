@@ -21,7 +21,7 @@ int ParseLine(char* srcString, char* tokens[], int maxTokens)
         }
 
         if (srcString[i] == ' ') { // if delimiter is found
-            srcString[i] = 0x00; // replace with null char
+            srcString[i] = 0x0; // replace with null char
             saved = 0; // marked as not saved (need to save on next iteration)
         } else if (saved == 0) { // if not saved
             tokens[numFound] = &srcString[i]; // save the address
@@ -31,6 +31,7 @@ int ParseLine(char* srcString, char* tokens[], int maxTokens)
             saved = 1; // ignore (don't save anything)
         }
     }
+    tokens[numFound] = 0x0; // insert null at the end of the array
     return numFound;
 }
 
