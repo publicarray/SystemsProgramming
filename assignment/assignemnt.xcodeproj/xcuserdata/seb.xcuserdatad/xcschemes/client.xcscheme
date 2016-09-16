@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "96A240FE1D8C008B004053BE"
-               BuildableName = "server"
-               BlueprintName = "server"
-               ReferencedContainer = "container:assignemnt1.xcodeproj">
+               BlueprintIdentifier = "96A2410A1D8C009B004053BE"
+               BuildableName = "client"
+               BlueprintName = "client"
+               ReferencedContainer = "container:assignemnt.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,10 +32,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "96A240FE1D8C008B004053BE"
-            BuildableName = "server"
-            BlueprintName = "server"
-            ReferencedContainer = "container:assignemnt1.xcodeproj">
+            BlueprintIdentifier = "96A2410A1D8C009B004053BE"
+            BuildableName = "client"
+            BlueprintName = "client"
+            ReferencedContainer = "container:assignemnt.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -55,15 +55,19 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "96A240FE1D8C008B004053BE"
-            BuildableName = "server"
-            BlueprintName = "server"
-            ReferencedContainer = "container:assignemnt1.xcodeproj">
+            BlueprintIdentifier = "96A2410A1D8C009B004053BE"
+            BuildableName = "client"
+            BlueprintName = "client"
+            ReferencedContainer = "container:assignemnt.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
             argument = "-p 5000"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "localhost"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
@@ -80,10 +84,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "96A240FE1D8C008B004053BE"
-            BuildableName = "server"
-            BlueprintName = "server"
-            ReferencedContainer = "container:assignemnt1.xcodeproj">
+            BlueprintIdentifier = "96A2410A1D8C009B004053BE"
+            BuildableName = "client"
+            BlueprintName = "client"
+            ReferencedContainer = "container:assignemnt.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

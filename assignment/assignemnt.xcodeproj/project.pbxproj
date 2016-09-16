@@ -24,7 +24,7 @@
 		96A240FD1D8C008B004053BE /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
+			dstPath = /usr/share/man/man1;
 			dstSubfolderSpec = 0;
 			files = (
 			);
@@ -80,7 +80,6 @@
 		96A240F41D8C001C004053BE = {
 			isa = PBXGroup;
 			children = (
-				96A241241D8C01E0004053BE /* assignment */,
 				96A241011D8C008B004053BE /* server */,
 				96A2410C1D8C009B004053BE /* client */,
 				96A241001D8C008B004053BE /* Products */,
@@ -121,14 +120,6 @@
 				96A2410D1D8C009B004053BE /* main.c */,
 			);
 			path = client;
-			sourceTree = "<group>";
-		};
-		96A241241D8C01E0004053BE /* assignment */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = assignment;
-			path = server;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -186,7 +177,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 96A240F81D8C001C004053BE /* Build configuration list for PBXProject "assignemnt1" */;
+			buildConfigurationList = 96A240F81D8C001C004053BE /* Build configuration list for PBXProject "assignemnt" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -438,7 +429,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		96A240F81D8C001C004053BE /* Build configuration list for PBXProject "assignemnt1" */ = {
+		96A240F81D8C001C004053BE /* Build configuration list for PBXProject "assignemnt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				96A240F91D8C001C004053BE /* Debug */,
