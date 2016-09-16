@@ -5,6 +5,8 @@
 //  Created by Sebastian Schmidt on 9/09/2016.
 //  Copyright © 2016 Sebastian Schmidt. All rights reserved.
 //
+//
+// create a new connection for each command, for every command fork the process
 
 #include <stdio.h>
 #include <stdlib.h>
