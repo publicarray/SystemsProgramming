@@ -39,17 +39,21 @@ int main(int argc, char *argv[])
     if(!error) {
         char buffer[3000];
         while(1) { // send commands to server
-            if (client.canRead(&client)){
+            if (client.canRead(&client)) { // if the server send something
                 int count = client.read(&client, buffer, sizeof(buffer));
                 buffer[count] = 0x00;
-                puts(buffer);
+                printf("%s", buffer);
+            }
+            if (canRead(STDIN_FILENO, 0, 500000)) { // if user typed something
+                fgets(buffer, sizeof buffer, stdin);
+                client.write(&client, buffer, strlen(buffer));
+                removeNewLine(buffer);
+            } else {
+                // printf("%sWaiting for input%s\n", BLU, NRM);
             }
 
-            printf("%sWaiting for user input%s\n", BLU, NRM);
-            fgets(buffer, sizeof buffer, stdin);
-            client.write(&client, buffer, strlen(buffer));
-            removeNewLine(buffer);
-            if (strcmp(buffer, "quit") == 0) {
+            // fgets(buffer, sizeof buffer, stdin);
+            if (strcmp(buffer, "quit") == 0 || strcmp(buffer, "exit") == 0) {
                 break;
             }
         }
