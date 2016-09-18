@@ -1,3 +1,4 @@
+// Adapted from Luke's LSocketType
 #include "SocketType.h"
 
 #include <stdio.h>
@@ -41,24 +42,17 @@ static void error_out (char *messgae) {
 
 }
 
-int canRead(Server *self, int seconds2wait, int microseconds2wait) {
-    struct timeval time;
-    struct timeval {
-        long tv_sec;          // seconds
-        long tv_usec;         // microseconds
-    };
-    time.tv_usec = 500; // 50ms
-
-    int ready = 0;
-    // asyncRead();
-    // if ((ready = select(2, self->socket.socket, NULL, NULL, &time)) == -1) {
-    //     perror("select()");
-    // }
-    printf("%d\n", ready);
-    return ready;
+int canRead(int fd, int seconds, int microseconds) {
+    fd_set readfd;
+    FD_ZERO(&readfd);
+    FD_SET(fd, &readfd);
+    struct timeval time = {seconds, microseconds};
+    return select(fd+1, &readfd, NULL, NULL, &time) > 0;
 }
 
-// asyncRead(Server *self, int seconds2wait, microseconds2wait, sdin, int ready)
+static int Socket__canRead(Socket *self) {
+    return canRead(self->socket, 0, 500000);
+}
 
 static void Server__close(Server *self) {
     self->socket.close(&self->socket);
@@ -162,5 +156,6 @@ Socket newSocket() {
     ret.close = Socket__close;
     ret.read = Socket__read;
     ret.write = Socket__write;
+    ret.canRead = Socket__canRead;
     return ret;
 }

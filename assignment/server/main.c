@@ -106,8 +106,7 @@ void console(char *request, String *response) {
         }
     }
 
-    // strConcatCS(response, request);
-    strAddChar(response, '\n');
+    // strAddChar(response, '\n');
 }
 
 int newThread (Socket com) {
@@ -142,11 +141,13 @@ int newThread (Socket com) {
             puts("Error reading input from client");
             break;
         }
-
+        strClean(&response); // empty string
         console(buffer, &response);
+        if (response.length > 0) {
+            com.write(&com, response.data, response.length);
+        }
     }
 
-    com.write(&com, response.data, response.length);
     com.close(&com);
     strFree(&response);
     exit(0);// exit child

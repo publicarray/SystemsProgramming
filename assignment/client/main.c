@@ -39,6 +39,13 @@ int main(int argc, char *argv[])
     if(!error) {
         char buffer[3000];
         while(1) { // send commands to server
+            if (client.canRead(&client)){
+                int count = client.read(&client, buffer, sizeof(buffer));
+                buffer[count] = 0x00;
+                puts(buffer);
+            }
+
+            printf("%sWaiting for user input%s\n", BLU, NRM);
             fgets(buffer, sizeof buffer, stdin);
             client.write(&client, buffer, strlen(buffer));
             removeNewLine(buffer);
@@ -46,10 +53,6 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-
-        int count = client.read(&client, buffer, sizeof(buffer));
-        buffer[count] = 0x0;
-        puts(buffer);
     }
 
     client.close(&client);

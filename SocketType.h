@@ -18,6 +18,7 @@ typedef struct Socket_Struct {
     void (*close)(struct Socket_Struct *self);
     int (*read)(struct Socket_Struct *self, char *buffer, int size);
     int (*write)(struct Socket_Struct *self, char *buffer, int size);
+    int (*canRead)(struct Socket_Struct *self);
 } Socket;
 
 typedef struct Socket_Struct Client; // alias

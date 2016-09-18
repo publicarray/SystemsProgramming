@@ -46,6 +46,12 @@ void strConcatCS(String* self, char* input) {
     // printf("self-> length:%i bufferlength:%i\n", self->length, self->bufferLength);
 }
 
+void strOverrideCS(String* self, char* input) {
+    self->length = 0;
+    strConcatCS(self, input);
+    self->data[self->length] = 0x00;
+}
+
 void strConcatI(String* self, int input) { // TODO: Refactor
     // printf("length: %d\n", floor(log10(abs(50))));
     char buffer[500];
@@ -71,6 +77,11 @@ int strParseInt(String* self) {
 
 void strPrint(String* self) {
     printf("%s\n", self->data);
+}
+
+void strClean(String* self) {
+    memset(self->data, 0x00, self->length);
+    self->length = 0;
 }
 
 void strFree(String* self) {
