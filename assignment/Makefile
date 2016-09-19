@@ -3,21 +3,21 @@ ISTALLDIR := /usr/local/bin/
 SERVER := server
 CLIENT := client
 
-SSRC = server/main.c ../SocketType.c lib.c ../01StringAndList/String.c server/ls.c server/cat.c
-CSRC = client/main.c ../SocketType.c lib.c
+SERVER_SRC = server/main.c ../SocketType.c lib.c ../01StringAndList/String.c server/ls.c server/cat.c
+CLIENT_SRC = client/main.c ../SocketType.c lib.c
 
 CFLAGS := -Wall -O3
 CC := gcc
 # CC := i686-w64-mingw32-gcc -std=c99  # windows
 
-.PHONY: all clean ${OUTS} ${OUTC} install
+.PHONY: all ${OUTDIR}${SERVER} ${OUTDIR}${CLIENT} clean install uninstall remove
 
 all: ${OUTDIR}${SERVER} ${OUTDIR}${CLIENT}
 
-${OUTDIR}${SERVER}: ${SSRC}
+${OUTDIR}${SERVER}: ${SERVER_SRC}
 	${CC} ${CFLAGS} $? -o ${OUTDIR}${SERVER}
 
-${OUTDIR}${CLIENT}: ${CSRC}
+${OUTDIR}${CLIENT}: ${CLIENT_SRC}
 	${CC} ${CFLAGS} $? -o ${OUTDIR}${CLIENT}
 
 clean:
