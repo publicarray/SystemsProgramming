@@ -52,7 +52,6 @@ int main(int argc, char *argv[])
                 // printf("%sWaiting for input%s\n", BLU, NRM);
             }
 
-            // fgets(buffer, sizeof buffer, stdin);
             if (strcmp(buffer, "quit") == 0 || strcmp(buffer, "exit") == 0) {
                 break;
             }
