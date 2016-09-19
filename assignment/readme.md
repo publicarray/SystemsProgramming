@@ -38,6 +38,12 @@ cc client/main.c ../SocketType.c lib.c -o bin/client && bin/client -p 5001 local
 
 # Usage
 
+## Example
+```sh
+server -p 5001
+client -p 5001 localhost
+```
+
 ## Server
 
 server -p, --port - Port number to bind the server to
