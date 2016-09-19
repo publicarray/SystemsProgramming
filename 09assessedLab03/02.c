@@ -3,19 +3,23 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/ipc.h>
-#include <sys/types.h>
 #include <sys/shm.h>
+#include <sys/types.h>
 #include "../08Pipes/prefix.h"
 
 #define BUFFERLEN 200
 #define SHARED_MEM_SIZE 1024 // 1k
 int main(int argc, char const *argv[])
 {
-    key_t key = 5678;
-    int shmid = shmget(key, SHARED_MEM_SIZE, IPC_CREAT | 0666);
+    int shmid = shmget(IPC_PRIVATE, SHARED_MEM_SIZE, IPC_CREAT | 0666);
+    if (shmid == -1) {
+        perror("shmget");
+        return 1;
+    }
+
     int pid = fork();
     if (pid == -1) {
-        puts("Error creating a new process/thread.");
+        perror("Error creating a new process/thread.");
         return 1;
     }
     if (pid != 0) {
@@ -38,12 +42,11 @@ int main(int argc, char const *argv[])
                 break;
             }
 
-            while(*readptr != '*');// wait for child
+            while(*readptr != '*'); // wait for child
             // now * is set in readptr, read some data
             readptr++;
             printf("%s\n", readptr);
-            readptr--;
-            *readptr = 0x00;
+            readptr[-1] = 0x00;
 
             // reset
             writeptr = readptr = shmat(shmid, NULL, 0);
@@ -63,18 +66,15 @@ int main(int argc, char const *argv[])
         // now * is set in readptr, read some data
         readptr++;
         strcpy(buffer, readptr); // read
+        readptr[-1] = 0x00;
         printf("pid:%d > %s\n", getpid(), buffer);
         if (strcmp(buffer, "quit") == 0 || strcmp(buffer, "exit") == 0) {
             exit(0);
         }
 
-        readptr--;
-        *readptr = 0x00;
-
-        // *writeptr = '*';
-        writeptr++;
         double value = prefixCalc(buffer);
         sprintf(buffer, "pid:%d < %lf\n", getpid(), value);
+        writeptr++;
         strcpy(writeptr, buffer); // write
         writeptr[-1] = '*';
 
@@ -82,5 +82,5 @@ int main(int argc, char const *argv[])
         writeptr = readptr = shmat(shmid, NULL, 0);
         writeptr += 512;
     }
-
+    return 0;
 }

@@ -8,6 +8,7 @@
 a.out
 prog
 *.exe
+_build
 
 # wine specific file
 .windows-serial

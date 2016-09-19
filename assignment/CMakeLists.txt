@@ -1,0 +1,9 @@
+cmake_minimum_required(VERSION 2.8)
+
+project(app_project)
+
+add_executable(server server/main.c ../SocketType.c lib.c ../01StringAndList/String.c server/ls.c server/cat.c)
+add_executable(client client/main.c ../SocketType.c lib.c)
+
+install(TARGETS server DESTINATION bin)
+install(TARGETS client DESTINATION bin)
