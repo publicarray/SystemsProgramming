@@ -1,6 +1,6 @@
 # Build & Install
 
-## Makefile (macOS and Linux)
+## Makefile
 
 ```sh
 make
@@ -15,7 +15,9 @@ make CC='i686-w64-mingw32-gcc -std=c99' SERVER='server.exe' CLIENT='client.exe'
 ```sh
 mkdir build
 cd build
-cmake .. # or `cmake .. -GXcode` for xcode
+cmake .. 
+# or: cmake .. -G 'Xcode'
+# or: cmake .. -G 'Visual Studio 12 2013'
 make
 make install
 ```
@@ -25,14 +27,12 @@ make install
 ### Compile and run the server
 
 ```bash
-cd assignment
 cc server/main.c ../SocketType.c lib.c ../01StringAndList/String.c server/ls.c server/cat.c -o bin/server && bin/server -p5001
 ```
 
 ### Compile and run the client
 
 ```bash
-cd assignment
 cc client/main.c ../SocketType.c lib.c -o bin/client && bin/client -p 5001 localhost
 ```
 
