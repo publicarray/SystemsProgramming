@@ -8,7 +8,12 @@
 a.out
 prog
 *.exe
-_build
+build
+assignment/bin/client
+assignment/bin/server
 
 # wine specific file
 .windows-serial
+
+# CMake
+CMakeFiles

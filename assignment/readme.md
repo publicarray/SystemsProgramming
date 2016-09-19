@@ -10,7 +10,7 @@ make install
 make CC='i686-w64-mingw32-gcc -std=c99' SERVER='server.exe' CLIENT='client.exe' 
 ```
 
-## Cmake
+## CMake
 
 ```sh
 mkdir build
