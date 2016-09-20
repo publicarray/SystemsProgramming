@@ -63,59 +63,40 @@ void terminate (int sig) {
 
 void console(char *request, String *response) {
     // reset getopt
-    optreset = 1;
-    optind = 1;
+    // optreset = 1;
+    // optind = 1;
 
 
     // opterr = 0; // disable getopt's own error messages e.g. case '?'
-    int c, fflag = 0, lflag = 0, argCount = 0, maxArguments = 10;
-    // char inStr[3000];
+    int argCount, maxArguments = 10;
     char *arguments[maxArguments];
-    // char tempbuf[200];
+
     // Remove trailing newline
     removeNewLine(request);
     argCount = splitStr(request, arguments, maxArguments);
-    // printf("argCount: %i\n", argCount);
-    while ((c = getopt(argCount, arguments, "fl")) != EOF) {
-        switch (c) {
-            case 'f':
-                fflag = 1;
-                break;
-            case 'l':
-                lflag = 1;
-                break;
-            case '?':
-                response->length += sprintf(response->data+response->length, "invalid option: -%c\n", optopt);
-                // sprintf(tempbuf, "invalid option: -%c\n", optopt);
-                // strConcatCS(response, tempbuf);
-        }
+
+    for (int i = 0;i < argCount; i++){
+        printf("%d: %s\n", i, arguments[i]);
     }
 
-    if (fflag) printf("Option f is set\n");
-    if (lflag) printf("Option l is set\n");
-
-    argCount -= optind;
-    // printf("argCount (after): %i\n", argCount);
-
+    // argCount -= optind;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     if (arguments[0] && strcmp(arguments[0], "list") == 0) {
-         if (argCount == 0) {
-            list(".", response); // if no arguments use current directory
-        } else if (argCount > 0) {
-            list(arguments[optind], response);
-        }
-    } else if (argCount > 0 && strcmp(arguments[0], "get") == 0) {
+        list(argCount, arguments, response);
+    } else if (arguments[0] && strcmp(arguments[0], "get") == 0) {
+        // get(argCount, arguments, response);
         get(arguments[1], response);
-    } else if (argCount > 0 && strcmp(arguments[0], "put") == 0) {
+    } else if (arguments[0] && strcmp(arguments[0], "put") == 0) {
         strConcatCS(response, "Command put found\n");
         // put(arguments[1], response);
     } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {
         sys(response);
-    } else if (arguments[0]&& strcmp(arguments[0], "delay") == 0) {
-        if (argCount != 1 || atoi(arguments[optind]) == 0) {
-            strConcatCS(response, "Usage: delay [time in seconds]\n");
-        } else {
-            delay(atoi(arguments[optind]), response);
-        }
+    } else if (arguments[0] && strcmp(arguments[0], "delay") == 0) {
+        // if (argCount != 1 || atoi(arguments[optind]) == 0) {
+            // strConcatCS(response, "Usage: delay [time in seconds]\n");
+        // } else {
+        delay(atoi(arguments[optind]), response);
+        // }
     } else {
         strConcatCS(response, "Command not found\n");
     }
