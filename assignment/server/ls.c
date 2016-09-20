@@ -18,26 +18,28 @@ int __list(const char path[], int lflag, String* out) {
     int status = 0;
 
     if ((dir = opendir(path)) == NULL) {
-        sprintf(buf, "ls: can’t open %s\n", path);
+        sprintf(buf, "Can not open directory: %s\n", path);
         strConcatCS(out, buf);
-    } else {
-        while((file = readdir(dir)) != NULL) {
-            sprintf(filepath, "%s/%s", path, file->d_name);
-            if (lflag) { // list long information if -l flag is set
-                status = lstat(filepath, &fst); // get file attributes
-                if (status == 0) {
-                    dateTime = fst.st_mtimespec;
-                    sprintf(buf, "%5d %5d %7llu %s\n", fst.st_uid, fst.st_gid, fst.st_size, file->d_name);
-                }
-            } else {
-                sprintf(buf, "  %s\n", file->d_name);
+        return 1;
+    }
+
+    while((file = readdir(dir)) != NULL) {
+        sprintf(filepath, "%s/%s", path, file->d_name);
+        if (lflag) { // list long information if -l flag is set
+            status = lstat(filepath, &fst); // get file attributes
+            if (status == 0) {
+                dateTime = fst.st_mtimespec;
+                sprintf(buf, "%5d %5d %7llu %s\n", fst.st_uid, fst.st_gid, fst.st_size, file->d_name);
             }
-            strConcatCS(out, buf);
+        } else {
+            sprintf(buf, "  %s\n", file->d_name);
         }
+        strConcatCS(out, buf);
     }
 
     if (closedir(dir) == -1) {
         perror("ls.c");
+        return 1;
     }
     return 0;
 }
