@@ -30,7 +30,7 @@
 void childProcessExit (int sig) {
     int pid;
     while ((pid = waitpid(-1, 0, WNOHANG)) > 0) { // non blocking
-        printf("killed: %d!\n", pid);
+        printf("Child Process Exited: %d!\n", pid);
         // if (kill(pid, SIGTERM) == -1) { // kill(): No such process
         //     perror("kill()");
         // }
@@ -46,7 +46,7 @@ void childProcessExit (int sig) {
 void terminate (int sig) {
     int pid;
     while ((pid = wait(NULL)) > 0) { // wait for processes to finish
-        printf("killed: %d!\n", pid);
+        printf("Stopping Server: %d!\n", pid);
         // if (kill(pid, SIGTERM) == -1) { // kill(): No such process
         //     perror("kill()");
         // }
@@ -62,25 +62,17 @@ void terminate (int sig) {
 }
 
 void console(char *request, String *response) {
-    // reset getopt
-    // optreset = 1;
-    // optind = 1;
-
-
-    // opterr = 0; // disable getopt's own error messages e.g. case '?'
     int argCount, maxArguments = 10;
     char *arguments[maxArguments];
-
     // Remove trailing newline
     removeNewLine(request);
     argCount = splitStr(request, arguments, maxArguments);
 
-    for (int i = 0;i < argCount; i++){
-        printf("%d: %s\n", i, arguments[i]);
-    }
+//debug
+    // for (int i = 0;i < argCount; i++){
+    //     printf("%d: %s\n", i, arguments[i]);
+    // }
 
-    // argCount -= optind;
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     if (arguments[0] && strcmp(arguments[0], "list") == 0) {
         list(argCount, arguments, response);
     } else if (arguments[0] && strcmp(arguments[0], "get") == 0) {
@@ -100,8 +92,6 @@ void console(char *request, String *response) {
     } else {
         strConcatCS(response, "Command not found\n");
     }
-
-    // strAddChar(response, '\n');
 }
 
 int newThread (Socket com) {
