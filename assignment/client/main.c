@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
 //
     initSocket();
-    int error;
+    int error = 0;
     struct timespec startTime;
     Client client = newClient(argv[0], portNumber, &error); // "127.0.0.1", 80
 
@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
             if (client.canRead(&client)) { // if the server send something
                 int count = client.read(&client, buffer, sizeof(buffer));
                 buffer[count] = 0x00;
-                printf("%s", buffer);
-                printf("Duration: %f second(s)\n", getTimeLapsed(startTime));
+                printf(BLU "%s" NRM, buffer);
+                printf(CYN "Duration: %.20f second(s)" NRM "\n", getTimeLapsed(startTime));
             }
             if (canRead(STDIN_FILENO, 0, 500000)) { // if user typed something
                 fgets(buffer, sizeof buffer, stdin);
@@ -61,7 +61,6 @@ int main(int argc, char *argv[])
             }
         }
     }
-
     client.close(&client);
     delSocket();
     return error;
