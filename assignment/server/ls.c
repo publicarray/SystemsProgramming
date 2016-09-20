@@ -3,6 +3,8 @@
 #include <unistd.h>
 // #include <errno.h> // errno
 #include <sys/stat.h>
+#include <time.h>
+#include <sys/time.h>
 #include "../../01StringAndList/String.h"
 
 int __list(const char path[], int lflag, String* out) {
@@ -13,12 +15,15 @@ int __list(const char path[], int lflag, String* out) {
     struct dirent *file;
     struct stat fst;
     struct timespec dateTime;
+    struct tm localDateTime;
     char buf[5120];
     char filepath[500];
+    char dateTimeFormat[20];
+    char datetimeFormatMs[26];
     int status = 0;
 
     if ((dir = opendir(path)) == NULL) {
-        sprintf(buf, "Can not open directory: %s\n", path);
+        sprintf(buf, "Can not open directory '%s'\n", path);
         strConcatCS(out, buf);
         return 1;
     }
@@ -28,8 +33,11 @@ int __list(const char path[], int lflag, String* out) {
         if (lflag) { // list long information if -l flag is set
             status = lstat(filepath, &fst); // get file attributes
             if (status == 0) {
-                dateTime = fst.st_mtimespec;
-                sprintf(buf, "%5d %5d %7llu %s\n", fst.st_uid, fst.st_gid, fst.st_size, file->d_name);
+                dateTime = fst.st_mtimespec; // get the last modification date
+                localDateTime = *localtime(&dateTime.tv_sec); // convert into a tm struct
+                strftime(dateTimeFormat, sizeof dateTimeFormat, "%Y-%m-%d %H:%M:%S", &localDateTime); // format date into a string
+                snprintf(datetimeFormatMs, sizeof datetimeFormatMs, "%s.%03ld", dateTimeFormat, dateTime.tv_nsec); // add manoseconds // OS X Extended formatted disk only store timestamps in seconds.
+                sprintf(buf, "%5d %5d %7llu %s %s\n", fst.st_uid, fst.st_gid, fst.st_size, datetimeFormatMs, file->d_name); // print attributes of a single file
             }
         } else {
             sprintf(buf, "  %s\n", file->d_name);
