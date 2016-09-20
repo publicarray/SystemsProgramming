@@ -5,6 +5,8 @@
 #include "../../SocketType.h"
 #include "../lib.h"
 
+int canRead(int fd, int seconds, int microseconds); // function declaration
+
 // cc -O3 main.c ../../SocketType.c ../lib.c -o client && ./client -p 8080 localhost
 int main(int argc, char *argv[])
 {
@@ -33,7 +35,7 @@ int main(int argc, char *argv[])
 //
     initSocket();
     int error;
-
+    struct timespec startTime;
     Client client = newClient(argv[0], portNumber, &error); // "127.0.0.1", 80
 
     if(!error) {
@@ -43,11 +45,13 @@ int main(int argc, char *argv[])
                 int count = client.read(&client, buffer, sizeof(buffer));
                 buffer[count] = 0x00;
                 printf("%s", buffer);
+                // printf("Time Elapsed: %.f second(s)\n", getTimeLapsed(startTime));
             }
             if (canRead(STDIN_FILENO, 0, 500000)) { // if user typed something
                 fgets(buffer, sizeof buffer, stdin);
                 client.write(&client, buffer, strlen(buffer));
                 removeNewLine(buffer);
+                // startTime = getTime();
             } else {
                 // printf("%sWaiting for input%s\n", BLU, NRM);
             }

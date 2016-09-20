@@ -14,5 +14,8 @@ int strLen(char *string);
 void removeNewLine (char* inStr);
 void strToLower(char *string);
 int splitStr(char* srcString, char* tokens[], int maxTokens);
+struct timespec getTime();
+float getTimeLapsed(struct timespec start);
+float getTimeNsec();
 
 #endif

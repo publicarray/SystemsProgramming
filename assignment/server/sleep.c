@@ -7,9 +7,10 @@ int delay (int seconds, String *out) {
     sleep(seconds);
 
     if (out == NULL) {
-        printf("delayed: %d\n", seconds);
+        // printf("delayed: %d\n", seconds);
+        printf("%d\n", seconds);
     } else {
-        strConcatCS(out, "delayed: ");
+        // strConcatCS(out, "delayed: ");
         strConcatI(out, seconds);
     }
     return seconds;

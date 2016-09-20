@@ -28,6 +28,9 @@ void strAddChar(String* self, char c) {
     self->data[++self->length] = '\0';
     // self->length[];
 }
+void strConcatC(String* self, char c) {
+    strAddChar(self, c);
+}
 
 void strConcat(String* self, String* input) {
     if (self == NULL) {return;}
@@ -68,6 +71,15 @@ void strConcatI(String* self, int input) { // TODO: Refactor
     snprintf(buffer, 500, "%d", input);
     buffer[strlen(buffer)] = 0x00;
     // printf("length1:%i\n", (int) strlen(buffer));
+    strConcatCS(self, buffer);
+}
+
+void strConcatF(String* self, float input) { // TODO: Refactor
+    if (self == NULL) {return;}
+
+    char buffer[500];
+    snprintf(buffer, 500, "%.10f", input);
+    buffer[strlen(buffer)] = 0x00;
     strConcatCS(self, buffer);
 }
 

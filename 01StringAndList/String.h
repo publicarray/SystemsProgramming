@@ -14,10 +14,12 @@ void strCInit(String* self, char* init);
 
 int strLength(String* self);
 void strAddChar(String* self, char c);
+void strConcatC(String* self, char c);
 void strConcat(String* self, String* input);
 void strConcatCS(String* self, char* input);
 void strOverrideCS(String* self, char* input);
 void strConcatI(String* self, int input);
+void strConcatF(String* self, float input);
 
 void strPrint(String*  self);
 int strParseInt(String* self);
