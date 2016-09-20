@@ -43,7 +43,7 @@ int __list(const char path[], int lflag, String* out) {
                 dateTime = fileStat.st_mtimespec; // get the last modification date
                 localDateTime = *localtime(&dateTime.tv_sec); // convert into a tm struct
                 // strftime(dateTimeFormat, sizeof dateTimeFormat, "%Y-%m-%d %H:%M:%S", &localDateTime); // format date into a string
-                strftime(dateTimeFormat, sizeof dateTimeFormat, "%e %b %Y %H:%M:%S", &localDateTime); // format date into a string
+                strftime(dateTimeFormat, sizeof dateTimeFormat, "%2e %b %Y %H:%M:%S", &localDateTime); // format date into a string
                 snprintf(datetimeFormatMs, sizeof datetimeFormatMs, "%s.%03ld", dateTimeFormat, dateTime.tv_nsec); // add manoseconds // OS X Extended formatted disk only store timestamps in seconds.
                 // Get User
                 user = getpwuid(fileStat.st_uid);
@@ -63,7 +63,7 @@ int __list(const char path[], int lflag, String* out) {
                     strConcatCS(out, (fileStat.st_mode & S_IROTH) ? "r" : "-");
                     strConcatCS(out, (fileStat.st_mode & S_IWOTH) ? "w" : "-");
                     strConcatCS(out, (fileStat.st_mode & S_IXOTH) ? "x" : "-");
-                    sprintf(buf, " %s %s %7llu %s %s", user->pw_name, group->gr_name , fileStat.st_size, datetimeFormatMs, file->d_name); // print attributes of a single file
+                    sprintf(buf, " %-5s %-5s %7llu %s %s", user->pw_name, group->gr_name , fileStat.st_size, datetimeFormatMs, file->d_name); // print attributes of a single file
                     strConcatCS(out, buf);
                     sprintf(buf, "%s\n", (S_ISLNK(fileStat.st_mode)) ? " -> Symbolic Link" : ""); // symbolic link
                     strConcatCS(out, buf);
