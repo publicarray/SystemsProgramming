@@ -108,8 +108,12 @@ void console(char *request, String *response) {
         strConcatCS(response, "Command put found\n");
     } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {
         sys(response);
-    } else if (argCount > 0 && strcmp(arguments[0], "delay") == 0) {
-        strConcatCS(response, "Command delay found\n");
+    } else if (arguments[0]&& strcmp(arguments[0], "delay") == 0) {
+        if (argCount != 1 || atoi(arguments[optind]) == 0) {
+            strConcatCS(response, "Usage: delay [time in seconds]\n");
+        } else {
+            delay(atoi(arguments[optind]), response);
+        }
     } else {
         strConcatCS(response, "Command not found\n");
     }

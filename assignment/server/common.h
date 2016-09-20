@@ -4,4 +4,5 @@
 int list(char path[], String* out);
 int get(char* filePath);
 int sys(String* out);
+int delay(int seconds, String* out);
 // #endif

@@ -27,7 +27,7 @@ make install
 ### Compile and run the server
 
 ```bash
-cc server/main.c ../SocketType.c lib.c ../01StringAndList/String.c server/ls.c server/cat.c server/uname.c server/cp.c server/wait.c -o bin/server && bin/server -p5001
+cc server/main.c ../SocketType.c lib.c ../01StringAndList/String.c server/ls.c server/cat.c server/uname.c server/cp.c server/sleep.c -o bin/server && bin/server -p5001
 ```
 
 ### Compile and run the client
