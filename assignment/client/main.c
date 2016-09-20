@@ -44,8 +44,8 @@ int main(int argc, char *argv[])
             if (client.canRead(&client)) { // if the server send something
                 int count = client.read(&client, buffer, sizeof(buffer));
                 buffer[count] = 0x00;
-                printf(BLU "%s" NRM, buffer);
-                printf(CYN "Duration: %.20f second(s)" NRM "\n", getTimeLapsed(startTime));
+                printf(CYN "%s" NRM, buffer);
+                printf(BLU "Duration: %.20f second(s)" NRM "\n", getTimeLapsed(startTime));
             }
             if (canRead(STDIN_FILENO, 0, 500000)) { // if user typed something
                 fgets(buffer, sizeof buffer, stdin);
