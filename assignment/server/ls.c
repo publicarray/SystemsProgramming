@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include "../../01StringAndList/String.h"
 
-int listdir(const char path[], String* out) {
+int list(const char path[], String* out) {
 
     DIR *dir;
     struct dirent *file;

@@ -98,13 +98,12 @@ void console(char *request, String *response) {
 
     if (arguments[0] && strcmp(arguments[0], "list") == 0) {
          if (argCount == 0) {
-            listdir(".", response); // if no arguments use current directory
+            list(".", response); // if no arguments use current directory
         } else if (argCount > 0) {
-            listdir(arguments[optind], response);
+            list(arguments[optind], response);
         }
     } else if (argCount > 0 && strcmp(arguments[0], "get") == 0) {
-        strConcatCS(response, "Command get found\n");
-        dump(arguments[1]);
+        get(arguments[1]);
     } else if (argCount > 0 && strcmp(arguments[0], "put") == 0) {
         strConcatCS(response, "Command put found\n");
     } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {

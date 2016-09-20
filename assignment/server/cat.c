@@ -7,7 +7,7 @@
 
 struct stat fAttributes;
 
-int dump(const char* filePath) {
+int get(const char* filePath) {
 
     if (stat(filePath, &fAttributes) == 0 && S_ISDIR(fAttributes.st_mode)) { // file is a dictionary
         return 1;
