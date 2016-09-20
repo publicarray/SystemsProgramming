@@ -40,18 +40,18 @@ int main(int argc, char *argv[])
 
     if(!error) {
         char buffer[3000];
-        while(1) { // send commands to server
+        while (1) { // send commands to server
             if (client.canRead(&client)) { // if the server send something
                 int count = client.read(&client, buffer, sizeof(buffer));
                 buffer[count] = 0x00;
                 printf("%s", buffer);
-                // printf("Time Elapsed: %.f second(s)\n", getTimeLapsed(startTime));
+                printf("Duration: %f second(s)\n", getTimeLapsed(startTime));
             }
             if (canRead(STDIN_FILENO, 0, 500000)) { // if user typed something
                 fgets(buffer, sizeof buffer, stdin);
                 client.write(&client, buffer, strlen(buffer));
                 removeNewLine(buffer);
-                // startTime = getTime();
+                startTime = getTime();
             } else {
                 // printf("%sWaiting for input%s\n", BLU, NRM);
             }

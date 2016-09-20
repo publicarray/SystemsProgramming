@@ -12,6 +12,7 @@ int delay (int seconds, String *out) {
     } else {
         // strConcatCS(out, "delayed: ");
         strConcatI(out, seconds);
+        strConcatC(out, '\n');
     }
     return seconds;
 }
