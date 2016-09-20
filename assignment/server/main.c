@@ -103,7 +103,7 @@ void console(char *request, String *response) {
             list(arguments[optind], response);
         }
     } else if (argCount > 0 && strcmp(arguments[0], "get") == 0) {
-        get(arguments[1]);
+        get(arguments[1], response);
     } else if (argCount > 0 && strcmp(arguments[0], "put") == 0) {
         strConcatCS(response, "Command put found\n");
     } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {

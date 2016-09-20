@@ -21,6 +21,8 @@ int strLength(String* self) {
 }
 
 void strAddChar(String* self, char c) {
+    if (self == NULL) {return;}
+
     strResize(self, 1);
     self->data[self->length] = c;
     self->data[++self->length] = '\0';
@@ -28,6 +30,8 @@ void strAddChar(String* self, char c) {
 }
 
 void strConcat(String* self, String* input) {
+    if (self == NULL) {return;}
+
     int newLength = self->length + input->length;
     strResize(self, newLength);
     // for (int i = 0; i < strlen(input->data); i++) {
@@ -38,6 +42,8 @@ void strConcat(String* self, String* input) {
 }
 
 void strConcatCS(String* self, char* input) {
+    if (self == NULL) {return;}
+
     strResize(self, strlen(input));
     for (int i = 0; i < strlen(input); i++) {
         self->data[self->length + i] = input[i];
@@ -47,12 +53,16 @@ void strConcatCS(String* self, char* input) {
 }
 
 void strOverrideCS(String* self, char* input) {
+    if (self == NULL) {return;}
+
     self->length = 0;
     strConcatCS(self, input);
     self->data[self->length] = 0x00;
 }
 
 void strConcatI(String* self, int input) { // TODO: Refactor
+    if (self == NULL) {return;}
+
     // printf("length: %d\n", floor(log10(abs(50))));
     char buffer[500];
     snprintf(buffer, 500, "%d", input);
@@ -62,6 +72,8 @@ void strConcatI(String* self, int input) { // TODO: Refactor
 }
 
 int strParseInt(String* self) {
+    if (self == NULL) {return 0;}
+
     return atoi(self->data);
     // char * nums = "1234567890";
     // int number = 0;
@@ -76,15 +88,21 @@ int strParseInt(String* self) {
 }
 
 void strPrint(String* self) {
+    if (self == NULL) {return;}
+
     printf("%s\n", self->data);
 }
 
 void strClean(String* self) {
+    if (self == NULL) {return;}
+
     memset(self->data, 0x00, self->length);
     self->length = 0;
 }
 
 void strFree(String* self) {
+    if (self == NULL) {return;}
+
     free(self->data);
     self->bufferLength = 0;
     self->length = 0;
