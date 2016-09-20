@@ -19,6 +19,7 @@
 #include "../../SocketType.h"
 #include "../lib.h"
 #include "../../01StringAndList/String.h"
+#include "common.h"
 // #include "../../01StringAndList/List.h"
 
 // cc -g main.c ../../SocketType.c ../lib.c ../../01StringAndList/String.c ls.c cat.c -o server && ./server -p 8080
@@ -94,9 +95,6 @@ void console(char *request, String *response) {
 
     argCount -= optind;
     // printf("argCount (after): %i\n", argCount);
-    if (argCount > 0 && strcmp(arguments[0], "dump") == 0) {
-        dump(arguments[1]);
-    }
 
     if (arguments[0] && strcmp(arguments[0], "list") == 0) {
          if (argCount == 0) {
@@ -104,6 +102,17 @@ void console(char *request, String *response) {
         } else if (argCount > 0) {
             listdir(arguments[optind], response);
         }
+    } else if (argCount > 0 && strcmp(arguments[0], "get") == 0) {
+        strConcatCS(response, "Command get found\n");
+        dump(arguments[1]);
+    } else if (argCount > 0 && strcmp(arguments[0], "put") == 0) {
+        strConcatCS(response, "Command put found\n");
+    } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {
+        sys(response);
+    } else if (argCount > 0 && strcmp(arguments[0], "delay") == 0) {
+        strConcatCS(response, "Command delay found\n");
+    } else {
+        strConcatCS(response, "Command not found\n");
     }
 
     // strAddChar(response, '\n');
@@ -133,7 +142,7 @@ int newThread (Socket com) {
         buffer[count] = 0x0;
         removeNewLine(buffer);
         // strToLower(buffer);
-        printf("%d: %s\n",cpid, buffer); // log request
+        printf("%d: %s\n", cpid, buffer); // log request
 
         if (count == 0 || strcmp(buffer, "quit") == 0 || strcmp(buffer, "exit") == 0) { // when count = 0 the peer closed it's half of the connection
             break;

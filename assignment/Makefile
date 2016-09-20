@@ -3,7 +3,7 @@ ISTALLDIR := /usr/local/bin/
 SERVER := server
 CLIENT := client
 
-SERVER_SRC = server/main.c ../SocketType.c lib.c ../01StringAndList/String.c server/ls.c server/cat.c
+SERVER_SRC = server/main.c ../SocketType.c lib.c ../01StringAndList/String.c server/ls.c server/cat.c server/uname.c server/cp.c server/wait.c
 CLIENT_SRC = client/main.c ../SocketType.c lib.c
 
 CFLAGS := -Wall -O3
