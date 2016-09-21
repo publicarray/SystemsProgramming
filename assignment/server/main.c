@@ -111,11 +111,7 @@ int newThread (Socket com) {
 
         if (count == 0 || strcmp(buffer, "quit") == 0 || strcmp(buffer, "exit") == 0) { // when count = 0 the peer closed it's half of the connection
             for (int i = 0; i < numProcesses; i++) { // wait for child processed before exiting
-                if ((pid = wait(NULL)) > 0) { // blocking
-                    printf("Child's child Process Exited: %d!\n", pid);
-                } else if (pid == -1 && errno != 10) { // 10 = No child processes
-                    perror("Child waitpid()");
-                }
+                wait(NULL); // blocking
             }
             break;
         } else if (count == -1) {
@@ -134,7 +130,8 @@ int newThread (Socket com) {
         if (pid != 0) {
             // parent
             numProcesses++;
-            printf("pid: %d\n", pid); // pid of the child
+            int mypid = getpid();
+            printf("pid: %d -> pid: %d\n", mypid, pid); // pid of the child
         } else {
             console(buffer, &response); // run command
             if (response.length > 0) {
