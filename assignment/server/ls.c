@@ -43,7 +43,7 @@ int __list(const char path[], int lflag, String* out) {
                 dateTime = fileStat.st_mtimespec; // get the last modification date
                 localDateTime = *localtime(&dateTime.tv_sec); // convert into a tm struct
                 // strftime(dateTimeFormat, sizeof dateTimeFormat, "%Y-%m-%d %H:%M:%S", &localDateTime); // format date into a string
-                strftime(dateTimeFormat, sizeof dateTimeFormat, "%2e %b %Y %H:%M:%S", &localDateTime); // format date into a string
+                strftime(dateTimeFormat, sizeof dateTimeFormat, "%e %b %Y %H:%M:%S", &localDateTime); // format date into a string
                 snprintf(datetimeFormatMs, sizeof datetimeFormatMs, "%s.%03ld", dateTimeFormat, dateTime.tv_nsec); // add manoseconds // OS X Extended formatted disk only store timestamps in seconds.
                 // Get User
                 user = getpwuid(fileStat.st_uid);
@@ -51,8 +51,8 @@ int __list(const char path[], int lflag, String* out) {
                 group = getgrgid(fileStat.st_gid);
 
                 if (user && group) {
+                    // Get and format Permissions
                     // https://stackoverflow.com/questions/10323060/printing-file-permissions-like-ls-l-using-stat2-in-c
-                    // Format Permissions
                     strConcatCS(out, (S_ISDIR(fileStat.st_mode)) ? "d" : "-");
                     strConcatCS(out, (fileStat.st_mode & S_IRUSR) ? "r" : "-");
                     strConcatCS(out, (fileStat.st_mode & S_IWUSR) ? "w" : "-");
@@ -106,7 +106,10 @@ int list(int argc, char *argv[], String* out) {
         }
     }
 
-    if (fflag) printf("Option f is set\n");
+    if (fflag) {
+        printf("Option f is set\n");
+        // strConcatCS(out, "*\n");
+    }
 
     argv += optind;
     argc -= optind;

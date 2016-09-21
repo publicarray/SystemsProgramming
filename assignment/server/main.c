@@ -31,14 +31,8 @@ void childProcessExit (int sig) {
     int pid;
     while ((pid = waitpid(-1, 0, WNOHANG)) > 0) { // non blocking
         printf("Child Process Exited: %d!\n", pid);
-        // if (kill(pid, SIGTERM) == -1) { // kill(): No such process
-        //     perror("kill()");
-        // }
-    }
-
-    if (pid == -1) {
-        if (errno != 10) { // 10 = No child processes
-            perror("waitpid()");
+        if (pid == -1 && errno != 10) { // 10 = No child processes
+            perror("childProcessExit waitpid()");
         }
     }
 }
@@ -47,14 +41,8 @@ void terminate (int sig) {
     int pid;
     while ((pid = wait(NULL)) > 0) { // wait for processes to finish
         printf("Stopping Server: %d!\n", pid);
-        // if (kill(pid, SIGTERM) == -1) { // kill(): No such process
-        //     perror("kill()");
-        // }
-    }
-
-    if (pid == -1) {
-        if (errno != 10) { // 10 = No child processes
-            perror("wait()");
+        if (pid == -1 && errno != 10) { // 10 = No child processes
+            perror("terminate wait()");
         }
     }
 
@@ -84,11 +72,11 @@ void console(char *request, String *response) {
     } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {
         sys(response);
     } else if (arguments[0] && strcmp(arguments[0], "delay") == 0) {
-        // if (argCount != 1 || atoi(arguments[optind]) == 0) {
-            // strConcatCS(response, "Usage: delay [time in seconds]\n");
-        // } else {
-        delay(atoi(arguments[optind]), response);
-        // }
+        if (argCount != 2 || atoi(arguments[1]) == 0) {
+            strConcatCS(response, "Usage: delay [time in seconds]\n");
+        } else {
+            delay(atoi(arguments[1]), response);
+        }
     } else {
         strConcatCS(response, "Command not found\n");
     }
@@ -106,13 +94,14 @@ int newThread (Socket com) {
         printf("pid: %d\n", pid); // pid of the child
         return pid; // return pid to main
     }
+
     // child pid = 0;
     int cpid =  getpid();
     char buffer[3000];
     // char answer[3000];
     String response; strInit(&response);
     int count;
-
+    int numProcesses = 0;
     while(1) {
         count = com.read(&com, buffer, sizeof(buffer));
         buffer[count] = 0x0;
@@ -121,15 +110,37 @@ int newThread (Socket com) {
         printf("%d: %s\n", cpid, buffer); // log request
 
         if (count == 0 || strcmp(buffer, "quit") == 0 || strcmp(buffer, "exit") == 0) { // when count = 0 the peer closed it's half of the connection
+            for (int i = 0; i < numProcesses; i++) { // wait for child processed before exiting
+                if ((pid = wait(NULL)) > 0) { // blocking
+                    printf("Child's child Process Exited: %d!\n", pid);
+                } else if (pid == -1 && errno != 10) { // 10 = No child processes
+                    perror("Child waitpid()");
+                }
+            }
             break;
         } else if (count == -1) {
             puts("Error reading input from client");
             break;
         }
+
         strClean(&response); // empty string
-        console(buffer, &response);
-        if (response.length > 0) {
-            com.write(&com, response.data, response.length);
+
+        int pid = fork(); // create a new process for each command
+
+        if (pid == -1) {
+            puts("Error creating a new process/thread.");
+            return -1;
+        }
+        if (pid != 0) {
+            // parent
+            numProcesses++;
+            printf("pid: %d\n", pid); // pid of the child
+        } else {
+            console(buffer, &response); // run command
+            if (response.length > 0) {
+                com.write(&com, response.data, response.length); // send response
+            }
+            exit(0); // exit child
         }
     }
 
