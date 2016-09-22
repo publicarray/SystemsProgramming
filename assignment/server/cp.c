@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <libgen.h>
 #include "../lib.h"
 #include "../../01StringAndList/String.h"
 
@@ -27,14 +28,44 @@ int put(int argc, char *argv[], String* out) {
     argc -= optind;
 // DEBUG
     printf("argc: %d\n", argc);
-    if (argc != 2) {strConcatCS(out, "usage: put [source_file] [target_file]\n"); return 1;} // if missing parameters
+    if (!(argc == 1 || argc == 2)) {strConcatCS(out, "usage: put [source_file] [target_file]\n"); return 1;} // if missing parameters
 
     struct stat foutAttributes;
-    char* inFilePath = argv[0];
 
-    size_t outFilePathLen = strlen(inFilePath) + strlen(argv[1]);
-    char outFilePath[outFilePathLen];
-    strcpy(outFilePath, argv[1]);
+ //TEST
+    // char *dirc, *basec, *bname, *dname;
+    // char *path = "/etc/passwd";
+
+    // dirc = strdup(path);
+    // basec = strdup(path);
+    // dname = dirname(dirc);
+    // bname = basename(basec);
+    // printf("dirname=%s, basename=%s\n", dname, bname);
+
+
+    char* inFilePath = argv[0]; // from client POV
+    char* outFilePath = NULL; // from server POV
+    if (argc == 2) {
+        outFilePath = strdup(argv[1]);
+    } else {
+        outFilePath = "name";
+        // strcpy(outFilePath, basename(inFilePath));
+    }
+
+    // size_t outFilePathLen = strlen(inFilePath);
+    // if (argc == 2) {
+    //     outFilePathLen = strlen(inFilePath) + strlen(argv[1]);
+    // }
+    // char outFilePath[outFilePathLen];
+    // if (argc == 2) {
+    //     strcpy(outFilePath, argv[1]);
+    // } else if (argc == 1) {
+    //     strcpy(outFilePath, basename(&inFilePath));
+    // }
+
+
+
+
 
     int outFileExists = stat(outFilePath, &foutAttributes); // 0=yes -1=no
 
