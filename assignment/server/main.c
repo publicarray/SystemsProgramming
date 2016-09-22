@@ -6,24 +6,19 @@
 //  Copyright © 2016 Sebastian Schmidt. All rights reserved.
 //
 //
-// create a new connection for each command, for every command fork the process
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
-#include <errno.h> // errno
-// #include <sys/wait.h>
+#include <errno.h>
 #include <sys/time.h>
 // #include <sys/types.h>
 #include "../../SocketType.h"
 #include "../lib.h"
 #include "../../01StringAndList/String.h"
 #include "common.h"
-// #include "../../01StringAndList/List.h"
-
-// cc -g main.c ../../SocketType.c ../lib.c ../../01StringAndList/String.c ls.c cat.c -o server && ./server -p 8080
 
 
 // http://www.microhowto.info/howto/reap_zombie_processes_using_a_sigchld_handler.html
@@ -45,7 +40,6 @@ void terminate (int sig) {
             perror("terminate wait()");
         }
     }
-
     exit(0);
 }
 
@@ -82,50 +76,51 @@ void console(char *request, String *response) {
     }
 }
 
-int newThread (Socket com) {
+int newProcess (Socket com) {
     int pid = fork();
 
     if (pid == -1) {
-        puts("Error creating a new process/thread.");
+        perror("Error creating a new process/thread.");
         return -1;
     }
     if (pid != 0) {
-        // parent
+        // parent:
         printf("pid: %d\n", pid); // pid of the child
-        return pid; // return pid to main
+        return pid; // return pid to main()
     }
-
-    // child pid = 0;
+    // child:
     int cpid =  getpid();
     char buffer[3000];
-    // char answer[3000];
     String response; strInit(&response);
-    int count;
-    int numProcesses = 0;
+    int readCount, numProcesses = 0;
     while(1) {
-        count = com.read(&com, buffer, sizeof(buffer));
-        buffer[count] = 0x0;
-        removeNewLine(buffer);
+        readCount = com.read(&com, buffer, sizeof(buffer));
+        buffer[readCount] = 0x00;
+        removeNewLine(buffer); // defined in lib.c
         // strToLower(buffer);
-        printf("%d: %s\n", cpid, buffer); // log request
+        if (strlen(buffer) == 0) {
+            continue; // skip loop if empty string e.g. new line feeds
+        }
 
-        if (count == 0 || strcmp(buffer, "quit") == 0 || strcmp(buffer, "exit") == 0) { // when count = 0 the peer closed it's half of the connection
+        printf("%d: %s\n", cpid, buffer); // log request to server console
+
+        if (readCount == 0 || strcmp(buffer, "quit") == 0 || strcmp(buffer, "exit") == 0) { // when readCount = 0 the peer closed it's half of the connection
             for (int i = 0; i < numProcesses; i++) { // wait for child processed before exiting
                 wait(NULL); // blocking
             }
             break;
-        } else if (count == -1) {
-            puts("Error reading input from client");
+        } else if (readCount == -1) {
+            perror("Error reading input from client");
+            com.write(&com, "Sorry, I don't understand your request!\n", 41);
             break;
         }
 
-        strClean(&response); // empty string
-
-        int pid = fork(); // create a new process for each command
+        // create a new process for each command
+        int pid = fork();
 
         if (pid == -1) {
-            puts("Error creating a new process/thread.");
-            return -1;
+            perror("Error creating a new process/thread.");
+            com.write(&com, "Error: Unable to create new processes!\n", 40);
         }
         if (pid != 0) {
             // parent
@@ -143,13 +138,13 @@ int newThread (Socket com) {
 
     com.close(&com);
     strFree(&response);
-    exit(0);// exit child
+    exit(0); // exit child
 };
 
 
 int main(int argc, char *argv[]) {
     signal(SIGCHLD, childProcessExit); // listen when a child exits
-    signal(SIGINT, terminate); // cleanup
+    signal(SIGINT, terminate); // cleanup [Control + C]
     signal(SIGQUIT, terminate); // cleanup
 
     opterr = 0; // disable getopt's own error messages e.g. case '?'
@@ -185,9 +180,10 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         Socket com = server.accept(&server);
-        newThread(com);
+        if (newProcess(com) == -1) {
+            com.write(&com, "Error: Unable to create new processes!\n", 40);
+        }
     }
-    // newCMD(repom); // new process for each command
 
     server.close(&server);
     delSocket();
