@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
                 if (saveOutput) {
                     saveToFile(filepath, buffer, forceSave);
                 } else {
-                    printf(CYN "%s" NRM, buffer);
+                    printServer(buffer);
                 }
                 printf(BLU "Duration: %.20f second(s)" NRM "\n", getTimeLapsed(startTime));
             }

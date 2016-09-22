@@ -18,6 +18,8 @@ int splitStr(char* srcString, char* tokens[], int maxTokens);
 struct timespec getTime();
 float getTimeLapsed(struct timespec start);
 float getTimeNsec();
+void printClient(char *message);
+void printServer(char *message);
 int saveToFile(char* to, char* bytes, int force);
 int copy(char *from, char *to);
 

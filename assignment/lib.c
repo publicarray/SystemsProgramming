@@ -87,6 +87,9 @@ int splitStr(char* srcString, char* tokens[], int maxTokens) {
 }
 
 void printClient(char *message) {
+    printf(BLU "%s" NRM, message);
+}
+void printServer(char *message) {
     printf(CYN "%s" NRM, message);
 }
 
@@ -107,7 +110,7 @@ int saveToFile(char* to, char* bytes, int force) {
         if (!force) {
             char option[1];
             printClient("File exists!\n");
-            printf(CYN "overwrite %s? (y/n [n]): "NRM, to);
+            printf(BLU "overwrite %s? (y/n [n]): "NRM, to);
             scanf("%1c", option);
             if (tolower(*option) != 'y') { // do not overwrite unless the user approved
                 printClient("not overwritten\n");
