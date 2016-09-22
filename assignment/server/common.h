@@ -3,7 +3,7 @@
 #include "../../01StringAndList/String.h"
 
 int list(int argc, char *argv[], String* out);
-int get(char* filePath, String* out);
+int get(int argc, char *argv[], String* out);
 int put(int argc, char *argv[], String* out);
 int sys(String* out);
 int delay(int seconds, String* out);

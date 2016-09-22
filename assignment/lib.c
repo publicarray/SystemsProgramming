@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <sys/time.h>
+#include <sys/stat.h>
 #define BUF_SIZE 16384
 
 #ifdef __MACH__
@@ -82,6 +83,57 @@ int splitStr(char* srcString, char* tokens[], int maxTokens) {
         }
     }
     return numFound;
+}
+
+int saveToFile(char* to, char* bytes, int force) {
+    struct stat foutAttributes;
+    int outFileExists = stat(to, &foutAttributes); // 0=yes -1=no
+    if (outFileExists == 0) { // file exists
+        if (S_ISDIR(foutAttributes.st_mode)) { // check if the path is a directory
+            puts("this is a directory, please give a file name\n");
+            return 1;
+            // if (strrchr(inFilePath, '/')) {
+            //     sprintf(to, "%s%s", to, strrchr(inFilePath, '/')); // append in file name to out path
+            // } else {
+            //     sprintf(to, "%s/%s", to, inFilePath); // append in file name to out path
+            // }
+        }
+        // ask do you want to override the file?
+        if (!force) {
+            char option[1];
+            printf("overwrite %s? (y/n [n]): ", to);
+            scanf("%1c", option);
+            if (tolower(*option) != 'y') { // do not overwrite unless the user approved
+                puts("not overwritten");
+                return 0;
+            }
+        }
+    }
+
+    FILE *fout = fopen(to, "wb");
+    size_t writeCount = 0;
+
+    if (!fout) {
+        perror(to);
+        return 1;
+    }
+
+    writeCount = fwrite(bytes, 1, strlen(bytes), fout);
+
+    if (writeCount == 0) {
+        puts("No bytes written");
+        fclose(fout);
+        return 1;
+    }
+
+    if (ferror(fout)) {
+        puts("I/O error when writing");
+        fclose(fout);
+        return 1;
+    }
+
+    fclose(fout);
+    return 0;
 }
 
 // StandardIO copy

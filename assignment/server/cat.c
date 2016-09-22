@@ -4,12 +4,12 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include "../../01StringAndList/String.h"
-
+#include <unistd.h>
 #define BUFFER_SIZE 16384 // read this many bytes at a time
 
-struct stat fAttributes;
 
-int get(const char* filePath, String *out) {
+int __get(const char* filePath, int fflag, String *out) {
+    struct stat fAttributes;
 
     if (stat(filePath, &fAttributes) == 0 && S_ISDIR(fAttributes.st_mode)) { // file is a dictionary
         return 1;
@@ -35,11 +35,13 @@ int get(const char* filePath, String *out) {
             bytesOut = fwrite(buffer, 1, bytesIn, stdout);
             if (bytesIn != bytesOut) { // check that the same number of bytes are read & written
                 fclose(file);
-                perror("cat.c, Fatal write error");
+                perror("cat.c, I/O write error");
+                strConcatCS(out, "I/O write error!\n");
                 return errno;
             }
         } else {
             strConcatCS(out, buffer);
+            strConcatC(out, '\n');
             if (strLength(out) == 0) {
                 strConcatCS(out, "Unable to read data!\n");
             }
@@ -49,9 +51,34 @@ int get(const char* filePath, String *out) {
     fclose(file);
     // other IO errors
     if (ferror(file)) {
-        strConcatCS(out, "Unknown error!\n");
+        strConcatCS(out, "I/O error!\n");
         perror("cat.c");
         return errno;
     }
     return 0;
+}
+
+int get(int argc, char *argv[], String* out) {
+    // reset getopt
+    optreset = 1;
+    optind = 1;
+
+    int c, fflag = 0;
+    while ((c = getopt(argc, argv, "f")) != EOF) {
+        switch (c) {
+            case 'f':
+                fflag = 1;
+                break;
+            case '?':
+                strConcatCS(out, "invalid option: -");
+                strConcatC(out, optopt);
+                strConcatC(out, '\n');
+        }
+    }
+    argv += optind;
+    argc -= optind;
+// DEBUG
+    printf("argc: %d\n", argc);
+    if (!(argc == 1 || argc == 2)) {strConcatCS(out, "usage: get [-f] source_file target_file\n"); return 1;} // if missing parameters
+    return __get(argv[0], fflag, out);
 }

@@ -58,8 +58,8 @@ void console(char *request, String *response) {
     if (arguments[0] && strcmp(arguments[0], "list") == 0) {
         list(argCount, arguments, response);
     } else if (arguments[0] && strcmp(arguments[0], "get") == 0) {
-        // get(argCount, arguments, response);
-        get(arguments[1], response);
+        get(argCount, arguments, response);
+        // get(arguments[1], response);
     } else if (arguments[0] && strcmp(arguments[0], "put") == 0) {
         put(argCount, arguments, response);
     } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {

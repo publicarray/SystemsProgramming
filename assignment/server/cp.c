@@ -28,7 +28,7 @@ int put(int argc, char *argv[], String* out) {
     argc -= optind;
 // DEBUG
     printf("argc: %d\n", argc);
-    if (!(argc == 1 || argc == 2)) {strConcatCS(out, "usage: put [source_file] [target_file]\n"); return 1;} // if missing parameters
+    if (!(argc == 1 || argc == 2)) {strConcatCS(out, "usage: put [-f] source_file target_file\n"); return 1;} // if missing parameters
 
     struct stat foutAttributes;
 

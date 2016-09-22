@@ -116,12 +116,19 @@ int list(int argc, char *argv[], String* out) {
 
     if (argc > 0) {
         int status = 0;
-        for (int i = 0; i < argc; i++) {
-            strConcatC(out, '\n');
-            strConcatCS(out, argv[i]);
-            strConcatCS(out, ":\n");
-            status = __list(argv[i], lflag, out);
-        }
+
+        strConcatC(out, '\n');
+        strConcatCS(out, argv[0]);
+        strConcatCS(out, ":\n");
+        status = __list(argv[0], lflag, out);
+
+        // for (int i = 0; i < argc; i++) {
+        //     strConcatC(out, '\n');
+        //     strConcatCS(out, argv[i]);
+        //     strConcatCS(out, ":\n");
+        //     status = __list(argv[i], lflag, out);
+        // }
+
         return status;
     } else {
         strConcatCS(out, ".:\n");

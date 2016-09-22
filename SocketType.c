@@ -21,25 +21,10 @@
 // #include <netinet6/in6.h>
 #endif
 
-// List sockets/clients
-// List id's
-// int i
-// int id
-//
-// int asyncRead(int totalSockets, );
-
-// canRead() {
-//    asyncRead() //select
-// }
-// canAccept(server, seconds2wait, miroseconds2wait)
-
-// popen | piping
-// _popen | piping
 
 static void error_out (char *messgae) {
     printf("Error in SocketType.c: %s\n", messgae);
     exit(1);
-
 }
 
 int canRead(int fd, int seconds, int microseconds) {
