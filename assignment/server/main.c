@@ -61,8 +61,7 @@ void console(char *request, String *response) {
         // get(argCount, arguments, response);
         get(arguments[1], response);
     } else if (arguments[0] && strcmp(arguments[0], "put") == 0) {
-        strConcatCS(response, "Command put found\n");
-        // put(arguments[1], response);
+        put(argCount, arguments, response);
     } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {
         sys(response);
     } else if (arguments[0] && strcmp(arguments[0], "delay") == 0) {

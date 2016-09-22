@@ -18,5 +18,6 @@ int splitStr(char* srcString, char* tokens[], int maxTokens);
 struct timespec getTime();
 float getTimeLapsed(struct timespec start);
 float getTimeNsec();
+int copy(char *from, char *to);
 
 #endif

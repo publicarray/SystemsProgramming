@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <sys/time.h>
+#define BUF_SIZE 16384
 
 #ifdef __MACH__
 #include <mach/clock.h>
@@ -81,4 +82,48 @@ int splitStr(char* srcString, char* tokens[], int maxTokens) {
         }
     }
     return numFound;
+}
+
+// StandardIO copy
+int copy(char* from, char* to)
+{
+    FILE *fin, *fout; // input and output
+    char buf[BUF_SIZE]; // buffer
+    int totalReadCount = 0, totalWriteCount = 0, readCount = 0, writeCount = 0;
+
+    fin = fopen(from, "rb");
+    fout = fopen(to, "wb");
+
+    if(!fin || !fout) {
+        perror("Opening file failed");
+        return 1;
+    }
+
+    // copy from fin to fout
+    while ((readCount = fread(buf, 1, BUF_SIZE, fin)) > 0) {
+        writeCount = fwrite(buf, 1, readCount, fout);
+        totalReadCount += readCount;
+        totalWriteCount += writeCount;
+    }
+
+    if (totalReadCount != totalWriteCount) {
+        puts("File count does not match! File is Corrupted.");
+        fclose(fin);
+        fclose(fout);
+        return 1;
+    }
+
+    if (ferror(fin) || ferror(fout)) {
+        puts("I/O error when reading");
+        fclose(fin);
+        fclose(fout);
+        return 1;
+    }
+    // else if (feof(fin) || ferror(fout)) {
+    //     puts("End of file reached successfully");
+    // }
+
+    fclose(fin);
+    fclose(fout);
+    return 0;
 }
