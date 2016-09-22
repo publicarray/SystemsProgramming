@@ -98,7 +98,7 @@ int saveToFile(char* to, char* bytes, int force) {
     int outFileExists = stat(to, &foutAttributes); // 0=yes -1=no
     if (outFileExists == 0) { // file exists
         if (S_ISDIR(foutAttributes.st_mode)) { // check if the path is a directory
-            printClient("This is a directory, please give a file name\n");
+            puts("This is a directory, please give a file name");
             return 1;
             // if (strrchr(inFilePath, '/')) {
             //     sprintf(to, "%s%s", to, strrchr(inFilePath, '/')); // append in file name to out path
@@ -109,11 +109,11 @@ int saveToFile(char* to, char* bytes, int force) {
         // ask do you want to override the file?
         if (!force) {
             char option[1];
-            printClient("File exists!\n");
-            printf(BLU "overwrite %s? (y/n [n]): "NRM, to);
+            puts("File exists!");
+            printf("overwrite %s? (y/n [n]): ", to);
             scanf("%1c", option);
             if (tolower(*option) != 'y') { // do not overwrite unless the user approved
-                printClient("not overwritten\n");
+                puts("not overwritten");
                 return 0;
             }
         }
@@ -130,13 +130,13 @@ int saveToFile(char* to, char* bytes, int force) {
     writeCount = fwrite(bytes, 1, strlen(bytes), fout);
 
     if (writeCount == 0) {
-        printClient("No bytes written");
+        puts("No bytes written");
         fclose(fout);
         return 1;
     }
 
     if (ferror(fout)) {
-        printClient("I/O error when writing");
+        puts("I/O error when writing");
         fclose(fout);
         return 1;
     }

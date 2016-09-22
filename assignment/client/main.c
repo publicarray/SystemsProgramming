@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
                 if (saveOutput) {
                     saveToFile(filepath, buffer, forceSave);
                 } else {
-                    printServer(buffer);
+                    printServer(buffer); // add colour to message - defined in lib.c
                 }
                 printf(BLU "Duration: %.20f second(s)" NRM "\n", getTimeLapsed(startTime));
             }
