@@ -7,11 +7,8 @@
 
 int canRead(int fd, int seconds, int microseconds); // function declaration
 
-// void print(char *message) {
-//     printf(CYN "%s" NRM, message);
-// }
-
 int getSaveCommand (char *request, int *fflag, char *filepath) {
+    *fflag = 0;
     int argc, maxArguments = 10;
     char *argv[maxArguments];
 
