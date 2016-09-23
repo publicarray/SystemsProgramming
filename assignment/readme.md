@@ -1,4 +1,4 @@
-# Build & Install
+d# Build & Install
 
 ## Makefile
 
@@ -46,23 +46,23 @@ client -p 5001 localhost
 
 ## Server
 
-server -p, --port - Port number to bind the server to
+server -p - Port number to bind the server to
 
 ## Client
 
-client -p, --port [IP address or host name] - Port number to listen to
+client -p [IP address or host name] - Port number to listen to
 
 # Commands
 
-list [-l] [-f] [pathname] [localfile] - list the files in the current or given directory to the screen or print them to a file. Options: –l = long list, -f force overwrite 
+list [-l] [-f] [pathname] [localfile] - lists the files in the current or given directory to the screen or prints them to a file. Options: –l = long list, -f force overwrite 
 
-get filepath [-f] [localfile] - print the content of a nominated file to screen or given file
+get filepath [-f] [localfile] - prints the content of a nominated file to screen or to the given file
 
-put localfile [-f] [fileName] - create a remote copy of a local file with same or other name
+put localfile [-f] [fileName] - creates a remote copy of a local file with same or user specified fileName
 
-sys - return the name /version of the Operating System and CPU type
+sys - returns the name /version of the Operating System and CPU type
 
-delay [integer] - returns the given integer after a delay of ‘integer’ seconds.
+delay [integer] - returns the given number after a delay of seconds.
 
 quit - exits the program
 
