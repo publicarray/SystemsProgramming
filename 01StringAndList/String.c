@@ -130,20 +130,20 @@ void strResize(String* self, int addSize) {
 
 
 // https://sucs.org/Knowledge/Help/Program%20Advisory/Reading%20an%20arbitrarily%20long%20line%20in%20C
-int srtRead(String* self, FILE * fd) {
-    size_t size = 0;
-    size_t last = 0;
+// int srtRead(String* self, FILE * fd) {
+//     size_t size = 0;
+//     size_t last = 0;
 
-    while (!feof(fd) && self->data[last] != '\n') {
-        size += BUFSIZ;
-        strResize(self, size);
+//     while (!feof(fd) && self->data[last] != '\n') {
+//         size += BUFSIZ;
+//         strResize(self, size);
 
-        if (fgets(self->data+last, size, fd) != NULL) {
-            self->length = strlen(self->data);
-            last = self->length - 1;
-        } else {
-            return 1;
-        }
-    }
-    return 0;
-}
+//         if (fgets(self->data+last, size, fd) != NULL) {
+//             self->length = strlen(self->data);
+//             last = self->length - 1;
+//         } else {
+//             return 1;
+//         }
+//     }
+//     return 0;
+// }

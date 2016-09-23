@@ -27,7 +27,6 @@ void strClean(String* self);
 void strFree(String* self);
 void strResize(String* self, int newSize);
 
-void strIncBufSize(String* self, int addSize);
-int srtRead(String* self, FILE * fd);
+// int srtRead(String* self, FILE * fd);
 
 #endif

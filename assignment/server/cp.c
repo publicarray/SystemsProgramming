@@ -40,6 +40,5 @@ int put(int argc, char *argv[], char* fileData, String* response) {
         filePath = argv[1];
     }
 
-    saveToFile(filePath, fileData, fflag, response);
-    return 0;
+    return saveToFile(filePath, fileData, fflag, response);
 }

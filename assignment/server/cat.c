@@ -8,7 +8,7 @@
 #define BUFFER_SIZE 16384 // read this many bytes at a time
 
 
-int __get(const char* filePath, int fflag, String *out) {
+int __get(const char* filePath, String *out) {
     struct stat fAttributes;
 
     if (stat(filePath, &fAttributes) == 0 && S_ISDIR(fAttributes.st_mode)) { // file is a dictionary
@@ -79,5 +79,5 @@ int get(int argc, char *argv[], String* out) {
     argc -= optind;
 
     if (!(argc == 1 || argc == 2)) {strConcatCS(out, "usage: get [-f] source_file target_file\n"); return 1;} // if missing parameters
-    return __get(argv[0], fflag, out);
+    return __get(argv[0], out);
 }
