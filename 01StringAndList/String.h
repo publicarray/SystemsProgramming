@@ -23,12 +23,10 @@ void strConcatF(String* self, float input);
 
 void strPrint(String*  self);
 int strParseInt(String* self);
-// char* split(String* self, char delimiter){};
 void strClean(String* self);
 void strFree(String* self);
 void strResize(String* self, int newSize);
 
-// charAt (String* self, int num)
 void strIncBufSize(String* self, int addSize);
 int srtRead(String* self, FILE * fd);
 

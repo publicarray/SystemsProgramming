@@ -26,8 +26,8 @@ void strAddChar(String* self, char c) {
     strResize(self, 1);
     self->data[self->length] = c;
     self->data[++self->length] = '\0';
-    // self->length[];
 }
+
 void strConcatC(String* self, char c) {
     strAddChar(self, c);
 }
@@ -37,7 +37,6 @@ void strConcat(String* self, String* input) {
 
     int newLength = self->length + input->length;
     strResize(self, newLength);
-    // for (int i = 0; i < strlen(input->data); i++) {
     for (int i = 0; i < input->length; i++) {
         self->data[self->length + i] = input->data[i];
     }
@@ -128,15 +127,6 @@ void strResize(String* self, int addSize) {
         self->data = realloc(self->data, sizeof(char) * self->bufferLength); // TODO: error checking
     }
 }
-
-// void splitString(String* self, char delemiter) {
-//     int n = 0;
-//     char *tokens[100];
-//     token[n] = strtok(self->data, ", " );
-//     while (token[n++]) {
-//         tokens[n] = strtok(NULL, "," );
-//     }
-// }
 
 
 // https://sucs.org/Knowledge/Help/Program%20Advisory/Reading%20an%20arbitrarily%20long%20line%20in%20C
