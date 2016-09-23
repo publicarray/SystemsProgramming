@@ -99,7 +99,6 @@ int splitStr(char* srcString, char* tokens[], int maxTokens) {
             return numFound;
         }
 
-// TODO: I could improve performance by stopping the search at a '\n' / or create a separate function to split the string at the first \n
         if (srcString[i] == ' ') {                  // if delimiter is found
             srcString[i] = 0x00;                    // replace with null char
             saved = 0;                              // marked as not saved (need to save on next iteration)

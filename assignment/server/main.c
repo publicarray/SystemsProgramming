@@ -47,13 +47,9 @@ void console(char *request, String *response) {
     int argCount, maxArguments = 10;
     char *arguments[maxArguments];
 
-    // original copy of the request, needed for put command
-    char* fileData = splitNextLine(request); // defined in lib.c
-    // strcpy(requestCopy, request);
-
-    // Remove trailing newline
-    removeNewLine(request);
-    argCount = splitStr(request, arguments, maxArguments);
+    char* fileData = splitNextLine(request); // get the file data needed for put command, defined in lib.c
+    removeNewLine(request); // Remove trailing newline
+    argCount = splitStr(request, arguments, maxArguments); // needs to happen after splitNextLine(); so only the first line is parsed
 
     if (arguments[0] && strcmp(arguments[0], "list") == 0) {
         list(argCount, arguments, response);

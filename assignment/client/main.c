@@ -8,7 +8,8 @@
 
 int canRead(int fd, int seconds, int microseconds); // function declaration
 
-int getCommand (char *request, int* saveOutput, int *fflag, char *filepath, String* filedata) {
+int getCommand (char *request, int *fflag, char *filepath, String* filedata) {
+    filepath[0] = 0x00;
     *fflag = 0;
     int argc, maxArguments = 10;
     char *argv[maxArguments];
@@ -50,10 +51,7 @@ int getCommand (char *request, int* saveOutput, int *fflag, char *filepath, Stri
         return readFile(argv[0], filedata);
     } else if (argc == 2) {
         strcpy(filepath, argv[1]);
-        *saveOutput = 1;
     }
-
-    *saveOutput = 0;
     return 0;
 }
 
@@ -82,11 +80,11 @@ int main(int argc, char *argv[])
     }
 
     initSocket();
-    int error = 0, status = 0, count = 0, saveOutput = 0, forceSave = 0, bufferSize = 10000;
+    int error = 0, status = 0, count = 0, forceSave = 0, bufferSize = 10000;
     struct timespec startTime;
     char filepath[600]; // TODO: allow long file names
     String filedata; strInit(&filedata);
-    String buf; strInit(&buf); //
+    // String buf; strInit(&buf);
     char buffer[bufferSize];
 
     Client client = newClient(argv[0], portNumber, &error); // "127.0.0.1", 80
@@ -116,7 +114,7 @@ int main(int argc, char *argv[])
                 }
                 buffer[count] = 0x00;
 
-                if (saveOutput) {
+                if (strlen(filepath) > 0) {
                     saveToFile(filepath, buffer, forceSave, NULL);
                 } else {
                     printServer(buffer); // add colour to message - defined in lib.c
@@ -126,7 +124,9 @@ int main(int argc, char *argv[])
             if (canRead(STDIN_FILENO, 0, 500000)) { // if user typed something
                 fgets(buffer, sizeof buffer, stdin);
                 // removeNewLine(buffer);
-                status = getCommand(buffer, &saveOutput,  &forceSave, filepath, &filedata);
+                char buffer2[strlen(buffer)];
+                strcpy(buffer2, buffer);
+                status = getCommand(buffer2,  &forceSave, filepath, &filedata);
                 if (filedata.length > 0 && status == 0) {
                     client.write(&client, filedata.data, filedata.length); // send user input and file data
                 } else if (status == 0){
