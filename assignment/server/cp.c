@@ -56,9 +56,8 @@ int put(int argc, char *argv[], char* request, String* response) {
     // bname = basename(basec);
     // printf("dirname=%s, basename=%s\n", dname, bname);
 
-
-    char* inFilePath = argv[0]; // from client POV
-    char* outFilePath = NULL; // from server POV
+    char* inFilePath = NULL;
+    char* outFilePath = NULL;
     if (argc == 2) {
         outFilePath = strdup(argv[1]);
     } else {

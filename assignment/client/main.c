@@ -8,7 +8,7 @@
 
 int canRead(int fd, int seconds, int microseconds); // function declaration
 
-int getCommand (char *request, int *fflag, char *filepath, String* filedata) {
+int getCommand (char *request, int* saveOutput, int *fflag, char *filepath, String* filedata) {
     *fflag = 0;
     int argc, maxArguments = 10;
     char *argv[maxArguments];
@@ -36,20 +36,24 @@ int getCommand (char *request, int *fflag, char *filepath, String* filedata) {
     argc -= optind;
 
     if ((argc == 1 || argc == 2) && strcmp(request, "put") == 0) { // if put command send the file
-        puts("putting");
-        // puts(argv[0]);
+        // Reconstruct user input
         strConcatCS(filedata, request); // add the user input to the request
+        if (*fflag) {
+            strConcatCS(filedata, " -f"); // add the user input to the request
+        }
         for (int i = 0; i < argc; i++) {
             strConcatC(filedata, ' '); // add the user input to the request
             strConcatCS(filedata, argv[i]); // add the user input to the request
         }
         strConcatC(filedata, '\n');
-        readFile(argv[0], filedata);
+        // read file
+        return readFile(argv[0], filedata);
     } else if (argc == 2) {
         strcpy(filepath, argv[1]);
-        return 1;
+        *saveOutput = 1;
     }
 
+    *saveOutput = 0;
     return 0;
 }
 
@@ -77,11 +81,10 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-//
     initSocket();
-    int error = 0, count = 0, saveOutput = 0, forceSave = 0, bufferSize = 10000;
+    int error = 0, status = 0, count = 0, saveOutput = 0, forceSave = 0, bufferSize = 10000;
     struct timespec startTime;
-    char filepath[600]; // todo
+    char filepath[600]; // TODO: allow long file names
     String filedata; strInit(&filedata);
     String buf; strInit(&buf); //
     char buffer[bufferSize];
@@ -102,7 +105,7 @@ int main(int argc, char *argv[])
                 //     buffer[count] = 0x00;
                 //     strConcatCS(&buf, buffer);
                 //     printServer(buf.data);
-                //     // if eof break;
+                //     // TODO: if end of input break loop / Need to know ahead of time what the file size is
                 // }
                 count = client.read(&client, buffer, sizeof(buffer));
                 if (count == -1) {
@@ -116,7 +119,6 @@ int main(int argc, char *argv[])
                 if (saveOutput) {
                     saveToFile(filepath, buffer, forceSave, NULL);
                 } else {
-                    // printServer(buf.data);
                     printServer(buffer); // add colour to message - defined in lib.c
                 }
                 printf(BLU "Duration: %.20f second(s)" NRM "\n", getTimeLapsed(startTime));
@@ -124,13 +126,13 @@ int main(int argc, char *argv[])
             if (canRead(STDIN_FILENO, 0, 500000)) { // if user typed something
                 fgets(buffer, sizeof buffer, stdin);
                 // removeNewLine(buffer);
-                saveOutput = getCommand(buffer, &forceSave, filepath, &filedata);
-                if (filedata.length > 0) {
-                    client.write(&client, filedata.data, filedata.length); // send request and file data
-                    strClean(&filedata); // reset buffer
-                } else {
-                    client.write(&client, buffer, strlen(buffer));
+                status = getCommand(buffer, &saveOutput,  &forceSave, filepath, &filedata);
+                if (filedata.length > 0 && status == 0) {
+                    client.write(&client, filedata.data, filedata.length); // send user input and file data
+                } else if (status == 0){
+                    client.write(&client, buffer, strlen(buffer)); // send user input
                 }
+                strClean(&filedata); // reset buffer
                 startTime = getTime();
             }
 

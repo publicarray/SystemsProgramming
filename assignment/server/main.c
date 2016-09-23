@@ -47,11 +47,9 @@ void console(char *request, String *response) {
     int argCount, maxArguments = 10;
     char *arguments[maxArguments];
 
-// needed for put command
-    int reqLen = strlen(request);
-    char requestCopy [reqLen];
+    // original copy of the request, needed for put command
+    char requestCopy [strlen(request)];
     strcpy(requestCopy, request);
-    printf("requestCopy:%s\n", requestCopy);
 
     // Remove trailing newline
     removeNewLine(request);
@@ -62,17 +60,7 @@ void console(char *request, String *response) {
     } else if (arguments[0] && strcmp(arguments[0], "get") == 0) {
         get(argCount, arguments, response);
     } else if (arguments[0] && strcmp(arguments[0], "put") == 0) {
-        strConcatCS(response, "received pudding\n");
         put(argCount, arguments, requestCopy, response);
-        // char* filedData = NULL;
-        // if ((filedData = nextLine(requestCopy)) == NULL) {
-        //     strConcatCS(response, "Data not found!");
-        //     return;
-        // }
-        // int fflag = 0;
-        // saveToFile("test.txt", filedData, fflag, NULL);
-        // strConcatCS(response, nextLine(requestCopy));
-        // strConcatC(response, '\n');
     } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {
         sys(response);
     } else if (arguments[0] && strcmp(arguments[0], "delay") == 0) {

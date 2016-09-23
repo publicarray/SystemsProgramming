@@ -86,14 +86,15 @@ int splitStr(char* srcString, char* tokens[], int maxTokens) {
             return numFound;
         }
 
-        if (srcString[i] == ' ') {                      // if delimiter is found
+// TODO: I could improve performance by stopping the search at a '\n' / or create a separate function to split the string at the first \n
+        if (srcString[i] == ' ') {                  // if delimiter is found
             srcString[i] = 0x00;                    // replace with null char
             saved = 0;                              // marked as not saved (need to save on next iteration)
-        } else if (saved == 0) {                        // if not saved
+        } else if (saved == 0) {                    // if not saved
             tokens[numFound] = &srcString[i];       // save the address
             numFound++;
             saved = 1;                              // ignore (don't save anything)
-        } else {                                        // all other characters
+        } else {                                    // all other characters
             saved = 1;                              // ignore (don't save anything)
         }
     }
@@ -115,6 +116,7 @@ void message(char* msg, String* out) {
     }
 }
 int saveToFile(char* to, char* bytes, int force, String* out) {
+    printf("force:%d\n", force);
     struct stat foutAttributes;
     int outFileExists = stat(to, &foutAttributes); // 0=yes -1=no
     if (outFileExists == 0) { // file exists
@@ -168,6 +170,9 @@ int saveToFile(char* to, char* bytes, int force, String* out) {
         return 1;
     }
 
+    if (out) {
+        strConcatCS(out, "file saved\n");
+    }
     fclose(fout);
     return 0;
 }
@@ -197,8 +202,7 @@ int readFile(char* filepath, String* buffer) {
         temp[readCount] = 0x00;
         strConcatCS(buffer, temp);
     }
-    printf("buffer to send:%s\n",buffer->data);
-    // strPrint(buffer);
+
     if (ferror(fin)) {
         puts("I/O error");
         fclose(fin);
@@ -209,7 +213,6 @@ int readFile(char* filepath, String* buffer) {
     return 0;
 }
 
-// StandardIO copy
 int copy(char* from, char* to)
 {
     FILE *fin, *fout; // input and output
