@@ -1,4 +1,4 @@
-d# Build & Install
+# Build & Install
 
 ## Makefile
 
@@ -7,7 +7,7 @@ make
 make install
 
 # or compile with mingw32:
-make CC='i686-w64-mingw32-gcc -std=c99' SERVER='server.exe' CLIENT='client.exe' 
+make CC='i686-w64-mingw32-gcc -std=c99' SERVER='server.exe' CLIENT='client.exe'
 ```
 
 ## CMake
@@ -15,7 +15,7 @@ make CC='i686-w64-mingw32-gcc -std=c99' SERVER='server.exe' CLIENT='client.exe'
 ```sh
 mkdir build
 cd build
-cmake .. 
+cmake ..
 # or: cmake .. -G 'Xcode'
 # or: cmake .. -G 'Visual Studio 12 2013'
 make
@@ -54,7 +54,7 @@ client -p [IP address or host name] - Port number to listen to
 
 # Commands
 
-list [-l] [-f] [pathname] [localfile] - lists the files in the current or given directory to the screen or prints them to a file. Options: –l = long list, -f force overwrite 
+list [-l] [-f] [pathname] [localfile] - lists the files in the current or given directory to the screen or prints them to a file. Options: -l = long list, -f force overwrite
 
 get filepath [-f] [localfile] - prints the content of a nominated file to screen or to the given file
 
