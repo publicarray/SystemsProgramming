@@ -46,22 +46,33 @@ void terminate (int sig) {
 void console(char *request, String *response) {
     int argCount, maxArguments = 10;
     char *arguments[maxArguments];
+
+// needed for put command
+    int reqLen = strlen(request);
+    char requestCopy [reqLen];
+    strcpy(requestCopy, request);
+    printf("requestCopy:%s\n", requestCopy);
+
     // Remove trailing newline
     removeNewLine(request);
     argCount = splitStr(request, arguments, maxArguments);
-
-//debug
-    // for (int i = 0;i < argCount; i++){
-    //     printf("%d: %s\n", i, arguments[i]);
-    // }
 
     if (arguments[0] && strcmp(arguments[0], "list") == 0) {
         list(argCount, arguments, response);
     } else if (arguments[0] && strcmp(arguments[0], "get") == 0) {
         get(argCount, arguments, response);
-        // get(arguments[1], response);
     } else if (arguments[0] && strcmp(arguments[0], "put") == 0) {
-        put(argCount, arguments, response);
+        strConcatCS(response, "received pudding\n");
+        put(argCount, arguments, requestCopy, response);
+        // char* filedData = NULL;
+        // if ((filedData = nextLine(requestCopy)) == NULL) {
+        //     strConcatCS(response, "Data not found!");
+        //     return;
+        // }
+        // int fflag = 0;
+        // saveToFile("test.txt", filedData, fflag, NULL);
+        // strConcatCS(response, nextLine(requestCopy));
+        // strConcatC(response, '\n');
     } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {
         sys(response);
     } else if (arguments[0] && strcmp(arguments[0], "delay") == 0) {
@@ -89,7 +100,7 @@ int newProcess (Socket com) {
     }
     // child:
     int cpid =  getpid();
-    char buffer[3000];
+    char buffer[10000];
     String response; strInit(&response);
     int readCount, numProcesses = 0;
     while(1) {

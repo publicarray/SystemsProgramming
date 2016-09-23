@@ -4,7 +4,7 @@
 
 int list(int argc, char *argv[], String* out);
 int get(int argc, char *argv[], String* out);
-int put(int argc, char *argv[], String* out);
+int put(int argc, char *argv[], char* request, String* response);
 int sys(String* out);
 int delay(int seconds, String* out);
 // #endif

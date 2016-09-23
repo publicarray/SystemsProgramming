@@ -7,7 +7,7 @@
 #include "../lib.h"
 #include "../../01StringAndList/String.h"
 
-int put(int argc, char *argv[], String* out) {
+int put(int argc, char *argv[], char* request, String* response) {
     // reset getopt
     optreset = 1;
     optind = 1;
@@ -19,18 +19,32 @@ int put(int argc, char *argv[], String* out) {
                 fflag = 1;
                 break;
             case '?':
-                strConcatCS(out, "invalid option: -");
-                strConcatC(out, optopt);
-                strConcatC(out, '\n');
+                strConcatCS(response, "invalid option: -");
+                strConcatC(response, optopt);
+                strConcatC(response, '\n');
         }
     }
     argv += optind;
     argc -= optind;
-// DEBUG
-    printf("argc: %d\n", argc);
-    if (!(argc == 1 || argc == 2)) {strConcatCS(out, "usage: put [-f] source_file target_file\n"); return 1;} // if missing parameters
+
+    if (!(argc == 1 || argc == 2)) {strConcatCS(response, "usage: put [-f] source_file target_file\n"); return 1;} // if missing parameters
 
     struct stat foutAttributes;
+    char* fileData = NULL;
+
+    if ((fileData = nextLine(request)) == NULL) {
+        strConcatCS(response, "Data not found!");
+        return 1;
+    }
+
+    saveToFile("test.txt", fileData, fflag, response);
+    return 0;
+
+
+
+
+
+
 
  //TEST
     // char *dirc, *basec, *bname, *dname;
@@ -85,15 +99,15 @@ int put(int argc, char *argv[], String* out) {
             // scanf("%1c", option);
             // if (tolower(*option) != 'y') { // do not overwrite unless the user approved
                 // puts("not overwritten");
-                strConcatCS(out, "File already exists, file not written!\n");
+                // strConcatCS(out, "File already exists, file not written!\n");
                 return 2;
             // }
         }
     }
 
-    if (copy(inFilePath, outFilePath) != 0) {
-        strConcatCS(out, "File I/O error!\n");
-        return 1;
-    }
+    // if (copy(inFilePath, outFilePath) != 0) {
+    //     strConcatCS(out, "File I/O error!\n");
+    //     return 1;
+    // }
     return 0;
 }

@@ -11,8 +11,6 @@
 
 int __list(const char path[], int lflag, String* out) {
 
-// The long listing option of the list commands will also return the file size, owner, creation date and access permissions.
-
     DIR *dir;
     struct dirent *file;
     struct stat fileStat;
@@ -87,7 +85,6 @@ int list(int argc, char *argv[], String* out) {
     optreset = 1;
     optind = 1;
 
-    // opterr = 0; // disable getopt's own error messages e.g. case '?'
     int c, fflag = 0, lflag = 0;
 
     while ((c = getopt(argc, argv, "fl")) != EOF) {
@@ -106,11 +103,6 @@ int list(int argc, char *argv[], String* out) {
         }
     }
 
-    if (fflag) {
-        printf("Option f is set\n");
-        // strConcatCS(out, "*\n");
-    }
-
     argv += optind;
     argc -= optind;
 
@@ -121,13 +113,6 @@ int list(int argc, char *argv[], String* out) {
         strConcatCS(out, argv[0]);
         strConcatCS(out, ":\n");
         status = __list(argv[0], lflag, out);
-
-        // for (int i = 0; i < argc; i++) {
-        //     strConcatC(out, '\n');
-        //     strConcatCS(out, argv[i]);
-        //     strConcatCS(out, ":\n");
-        //     status = __list(argv[i], lflag, out);
-        // }
 
         return status;
     } else {

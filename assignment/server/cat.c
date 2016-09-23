@@ -77,8 +77,7 @@ int get(int argc, char *argv[], String* out) {
     }
     argv += optind;
     argc -= optind;
-// DEBUG
-    printf("argc: %d\n", argc);
+
     if (!(argc == 1 || argc == 2)) {strConcatCS(out, "usage: get [-f] source_file target_file\n"); return 1;} // if missing parameters
     return __get(argv[0], fflag, out);
 }

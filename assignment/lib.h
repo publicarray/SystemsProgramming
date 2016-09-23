@@ -11,8 +11,11 @@
 #define CYN  "\x1B[36m"
 #define WHT  "\x1B[37m"
 
+#include "../01StringAndList/String.h"
+
 int strLen(char *string);
-void removeNewLine (char* inStr);
+void removeNewLine(char* inStr);
+char* nextLine(char* inStr);
 void strToLower(char *string);
 int splitStr(char* srcString, char* tokens[], int maxTokens);
 struct timespec getTime();
@@ -20,7 +23,8 @@ float getTimeLapsed(struct timespec start);
 float getTimeNsec();
 void printClient(char *message);
 void printServer(char *message);
-int saveToFile(char* to, char* bytes, int force);
+int saveToFile(char* to, char* bytes, int force, String* out);
+int readFile(char* filepath, String* buffer);
 int copy(char *from, char *to);
 
 #endif

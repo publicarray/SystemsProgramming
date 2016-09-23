@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <time.h>
+#include <errno.h>
 #include <sys/time.h>
 #include <sys/stat.h>
 #include "lib.h"
+#include "../01StringAndList/String.h"
 #define BUF_SIZE 16384
 
 #ifdef __MACH__
@@ -49,10 +51,22 @@ int strLen(char *string) {
     return length;
 }
 
-void removeNewLine (char* inStr) {
+void removeNewLine(char* inStr) {
     if ((strLen(inStr) > 0) && (inStr[strLen(inStr) - 1] == '\n')) {
-         inStr[strLen(inStr) - 1] = '\0';
+        inStr[strLen(inStr) - 1] = '\0';
     }
+}
+
+char* nextLine(char* inStr) {
+    int length;
+    if ((length = strLen(inStr)) > 0) {
+        for (int i = 0; i < length-1; i++) {
+            if (inStr[i] == '\n' && inStr[i+1]) { // check that there are character left after the '/n'
+                return &inStr[i+1];
+            }
+        }
+    }
+    return NULL;
 }
 
 void strToLower(char *string) {
@@ -93,12 +107,19 @@ void printServer(char *message) {
     printf(CYN "%s" NRM, message);
 }
 
-int saveToFile(char* to, char* bytes, int force) {
+void message(char* msg, String* out) {
+    puts(msg);
+    if (out) {
+        strConcatCS(out, msg);
+        strConcatC(out, '\n');
+    }
+}
+int saveToFile(char* to, char* bytes, int force, String* out) {
     struct stat foutAttributes;
     int outFileExists = stat(to, &foutAttributes); // 0=yes -1=no
     if (outFileExists == 0) { // file exists
         if (S_ISDIR(foutAttributes.st_mode)) { // check if the path is a directory
-            puts("This is a directory, please give a file name");
+            message("This is a directory, please give a file name", out);
             return 1;
             // if (strrchr(inFilePath, '/')) {
             //     sprintf(to, "%s%s", to, strrchr(inFilePath, '/')); // append in file name to out path
@@ -109,7 +130,10 @@ int saveToFile(char* to, char* bytes, int force) {
         // ask do you want to override the file?
         if (!force) {
             char option[1];
-            puts("File exists!");
+            message("File already exists!", out);
+            if (out) { // exit early if we are responding request to a client, don't bother asking
+                return 1;
+            }
             printf("overwrite %s? (y/n [n]): ", to);
             scanf("%1c", option);
             if (tolower(*option) != 'y') { // do not overwrite unless the user approved
@@ -124,24 +148,64 @@ int saveToFile(char* to, char* bytes, int force) {
 
     if (!fout) {
         perror(to);
+        if (out) {
+            strConcatCS(out, strerror(errno));
+        }
         return 1;
     }
 
     writeCount = fwrite(bytes, 1, strlen(bytes), fout);
 
     if (writeCount == 0) {
-        puts("No bytes written");
+        message("No bytes written", out);
         fclose(fout);
         return 1;
     }
 
     if (ferror(fout)) {
-        puts("I/O error when writing");
+        message("I/O error when writing", out);
         fclose(fout);
         return 1;
     }
 
     fclose(fout);
+    return 0;
+}
+
+int readFile(char* filepath, String* buffer) {
+    char temp[500];
+    struct stat foutAttributes;
+    int outFileExists = stat(filepath, &foutAttributes); // 0=yes -1=no
+    if (outFileExists == -1) { // file does not exists
+        puts("File does not exist");
+        return 1;
+    }
+    if (S_ISDIR(foutAttributes.st_mode)) { // check if the path is a directory
+        puts("This is a directory, please enter a file name");
+        return 1;
+    }
+
+    FILE *fin = fopen(filepath, "rb");
+    size_t readCount = 0;
+
+    if (!fin) {
+        perror(filepath);
+        return 1;
+    }
+
+    while ((readCount = fread(temp, 1, sizeof temp, fin)) > 0) {
+        temp[readCount] = 0x00;
+        strConcatCS(buffer, temp);
+    }
+    printf("buffer to send:%s\n",buffer->data);
+    // strPrint(buffer);
+    if (ferror(fin)) {
+        puts("I/O error");
+        fclose(fin);
+        return 1;
+    }
+
+    fclose(fin);
     return 0;
 }
 
