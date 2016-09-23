@@ -69,6 +69,19 @@ char* nextLine(char* inStr) {
     return NULL;
 }
 
+char* splitNextLine(char* inStr) {
+    int length;
+    if ((length = strLen(inStr)) > 0) {
+        for (int i = 0; i < length-1; i++) {
+            if (inStr[i] == '\n' && inStr[i+1]) { // check that there are character left after the '/n'
+                inStr[i] = 0x00;
+                return &inStr[i+1];
+            }
+        }
+    }
+    return NULL;
+}
+
 void strToLower(char *string) {
     for(int i = 0; string[i]; i++){
         string[i] = tolower(string[i]);
@@ -116,7 +129,6 @@ void message(char* msg, String* out) {
     }
 }
 int saveToFile(char* to, char* bytes, int force, String* out) {
-    printf("force:%d\n", force);
     struct stat foutAttributes;
     int outFileExists = stat(to, &foutAttributes); // 0=yes -1=no
     if (outFileExists == 0) { // file exists

@@ -7,7 +7,7 @@
 #include "../lib.h"
 #include "../../01StringAndList/String.h"
 
-int put(int argc, char *argv[], char* request, String* response) {
+int put(int argc, char *argv[], char* fileData, String* response) {
     // reset getopt
     optreset = 1;
     optind = 1;
@@ -30,14 +30,18 @@ int put(int argc, char *argv[], char* request, String* response) {
     if (!(argc == 1 || argc == 2)) {strConcatCS(response, "usage: put [-f] source_file target_file\n"); return 1;} // if missing parameters
 
     struct stat foutAttributes;
-    char* fileData = NULL;
 
-    if ((fileData = nextLine(request)) == NULL) {
+    if (fileData == NULL) {
         strConcatCS(response, "Data not found!");
         return 1;
     }
 
-    saveToFile("test.txt", fileData, fflag, response);
+    char* filePath = basename(argv[0]);
+    if (argc == 2) {
+        filePath = argv[1];
+    }
+
+    saveToFile(filePath, fileData, fflag, response);
     return 0;
 
 

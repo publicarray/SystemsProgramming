@@ -48,8 +48,8 @@ void console(char *request, String *response) {
     char *arguments[maxArguments];
 
     // original copy of the request, needed for put command
-    char requestCopy [strlen(request)];
-    strcpy(requestCopy, request);
+    char* fileData = splitNextLine(request); // defined in lib.c
+    // strcpy(requestCopy, request);
 
     // Remove trailing newline
     removeNewLine(request);
@@ -60,7 +60,7 @@ void console(char *request, String *response) {
     } else if (arguments[0] && strcmp(arguments[0], "get") == 0) {
         get(argCount, arguments, response);
     } else if (arguments[0] && strcmp(arguments[0], "put") == 0) {
-        put(argCount, arguments, requestCopy, response);
+        put(argCount, arguments, fileData, response);
     } else if (arguments[0] && strcmp(arguments[0], "sys") == 0) {
         sys(response);
     } else if (arguments[0] && strcmp(arguments[0], "delay") == 0) {

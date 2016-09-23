@@ -16,6 +16,7 @@
 int strLen(char *string);
 void removeNewLine(char* inStr);
 char* nextLine(char* inStr);
+char* splitNextLine(char* inStr);
 void strToLower(char *string);
 int splitStr(char* srcString, char* tokens[], int maxTokens);
 struct timespec getTime();
