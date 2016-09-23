@@ -174,8 +174,8 @@ int main(int argc, char *argv[]) {
 
     while (1) {
         Socket com = server.accept(&server);
-        if (newProcess(com) == -1) {
-            com.write(&com, "Error: Unable to create new processes!\n", 40);
+        if (newProcess(com) == -1) {// -1 = failure in creating a new processes
+            com.write(&com, "Error: Unable to handle the request!\n", 38);
         }
     }
 

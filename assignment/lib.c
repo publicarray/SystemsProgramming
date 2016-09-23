@@ -44,7 +44,6 @@ float getTimeNsec() {
 
 int strLen(char *string) {
     int length = 0;
-
     while (string[length] != '\0') {
         length++;
     }
@@ -53,7 +52,7 @@ int strLen(char *string) {
 
 void removeNewLine(char* inStr) {
     if ((strLen(inStr) > 0) && (inStr[strLen(inStr) - 1] == '\n')) {
-        inStr[strLen(inStr) - 1] = '\0';
+        inStr[strLen(inStr) - 1] = 0x00;
     }
 }
 
@@ -80,6 +79,9 @@ char* splitNextLine(char* inStr) {
         }
     }
     return NULL;
+
+    //char* next = nextLine(inStr);
+    //next[-1] = 0x00;
 }
 
 void strToLower(char *string) {
