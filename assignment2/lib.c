@@ -32,25 +32,39 @@ uint32_t rotr32 (uint32_t value, unsigned int count) {
 
 #include <math.h> // used for floor
 
+// 30 = 2,3,5 // prime factorisation
 int factorise(int n) {
-    for (int i = 2; i*i < floor(n); i++) {
-        if (n%i == 0) {
-            // i = smallest divider found
+    int negative = 0;
+    if (n < 0) {
+        negative = 1;
+    }
+
+    for (int i = 2; i*i <= abs(n); i++) {
+        if (n % i == 0) {
+            if (negative) {
+                return (i * -1);
+            }
+            // i = smallest factor found
             return i; // n/i result
         }
     }
-    // if none found can we divide by itself?
-    if (n > 1) {
-        return n;
-    }
-    return 0;
+
+    return n; // found a prime number
 }
 
+// Fermat primality test
+// a^p-1 mod p = 1?
+// a= a random number that is less than p
+// p= int to check e.g 181
+// 68^180 mod 108 = 1 so probably a prime with low error
 
 
 int main(int argc, char const *argv[])
 {
     printf("%d\n", rotl32(32, 3));
-    printf("%d\n", factorise(10));
+    printf("%d\n", factorise(30));
+    printf("%d\n", factorise(54734711)); //prime:  54734711
+    printf("%d\n", factorise(-10));
+    printf("%d\n", factorise(-54734711));
     return 0;
 }
