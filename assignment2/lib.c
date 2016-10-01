@@ -28,15 +28,20 @@ uint32_t rotr32 (uint32_t value, unsigned int count) {
 
 // Trial Division
 // http://www.connellybarnes.com/documents/factoring.pdf
+// https://en.wikipedia.org/wiki/Trial_division
 
-#include <math.h>  // used for sqrt and floor
+#include <math.h> // used for floor
 
 int factorise(int n) {
-    for (int i = 2; i < floor(sqrt(n)); i++) {
+    for (int i = 2; i*i < floor(n); i++) {
         if (n%i == 0) {
-            // i = biggest prime found
+            // i = smallest divider found
             return i; // n/i result
         }
+    }
+    // if none found can we divide by itself?
+    if (n > 1) {
+        return n;
     }
     return 0;
 }
@@ -46,6 +51,6 @@ int factorise(int n) {
 int main(int argc, char const *argv[])
 {
     printf("%d\n", rotl32(32, 3));
-    printf("%d\n", factorise(1));
+    printf("%d\n", factorise(10));
     return 0;
 }
