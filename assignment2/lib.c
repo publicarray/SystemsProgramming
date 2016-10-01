@@ -30,15 +30,10 @@ uint32_t rotr32 (uint32_t value, unsigned int count) {
 // http://www.connellybarnes.com/documents/factoring.pdf
 // https://en.wikipedia.org/wiki/Trial_division
 
-#include <math.h> // used for abs
-
 // 30 = 2,3,5 // prime factorisation
-int factorise(int n) {
-    for (int i = 2; i*i <= abs(n); i++) {
+int32_t factorise(int32_t n) {
+    for (int32_t i = 2; i*i <= n; i++) {
         if (n % i == 0) {
-            if (n < 0) { // if n is negative
-                return (i * -1);
-            }
             // i = smallest factor found
             return i; // n/i result
         }
