@@ -30,18 +30,13 @@ uint32_t rotr32 (uint32_t value, unsigned int count) {
 // http://www.connellybarnes.com/documents/factoring.pdf
 // https://en.wikipedia.org/wiki/Trial_division
 
-#include <math.h> // used for floor
+#include <math.h> // used for abs
 
 // 30 = 2,3,5 // prime factorisation
 int factorise(int n) {
-    int negative = 0;
-    if (n < 0) {
-        negative = 1;
-    }
-
     for (int i = 2; i*i <= abs(n); i++) {
         if (n % i == 0) {
-            if (negative) {
+            if (n < 0) { // if n is negative
                 return (i * -1);
             }
             // i = smallest factor found
@@ -66,5 +61,6 @@ int main(int argc, char const *argv[])
     printf("%d\n", factorise(54734711)); //prime:  54734711
     printf("%d\n", factorise(-10));
     printf("%d\n", factorise(-54734711));
+    printf("%d\n", rotl32(32, 32-1));
     return 0;
 }
