@@ -84,8 +84,9 @@ int main(int argc, char const *argv[])
     while (1) {
         if (*number) {
             printf("child received: %d\n", *number);
-            *number = 0;
             slot[1] = factorise(*number);
+            *number = 0;
+            exit(1);// for debugging only
         }
     }
     return 0;
