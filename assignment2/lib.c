@@ -49,13 +49,43 @@ int32_t factorise(int32_t n) {
 // 68^180 mod 108 = 1 so probably a prime with low error
 
 
-int main(int argc, char const *argv[])
-{
-    printf("%d\n", rotl32(32, 3));
-    printf("%d\n", factorise(30));
-    printf("%d\n", factorise(54734711)); //prime:  54734711
-    printf("%d\n", factorise(-10));
-    printf("%d\n", factorise(-54734711));
-    printf("%d\n", rotl32(32, 32-1));
-    return 0;
+#include <sys/types.h>
+#include <sys/select.h>
+
+int canRead(int fd, int seconds, int microseconds) {
+    fd_set readfd;
+    FD_ZERO(&readfd);
+    FD_SET(fd, &readfd);
+    struct timeval time = {seconds, microseconds};
+    return select(fd+1, &readfd, NULL, NULL, &time) > 0;
 }
+
+#include <sys/shm.h>
+// #include <sys/types.sh>
+int newSharedMemory (unsigned int size) {
+    int shmid = shmget(IPC_PRIVATE, size, IPC_CREAT | 0666);
+    if (shmid == -1) {
+        perror("shmget");
+        exit(1);
+    }
+    return shmid;
+}
+
+#include <string.h>
+
+void removeNewLine(char* inStr) {
+    if ((strlen(inStr) > 0) && (inStr[strlen(inStr) - 1] == '\n')) {
+        inStr[strlen(inStr) - 1] = 0x00;
+    }
+}
+
+// int main(int argc, char const *argv[])
+// {
+//     printf("%d\n", rotl32(32, 3));
+//     printf("%d\n", factorise(30));
+//     printf("%d\n", factorise(54734711)); //prime:  54734711
+//     printf("%d\n", factorise(-10));
+//     printf("%d\n", factorise(-54734711));
+//     printf("%d\n", rotl32(32, 32-1));
+//     return 0;
+// }
