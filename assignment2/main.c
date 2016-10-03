@@ -18,7 +18,7 @@
 // #include <sys/ipc.h>
 #include <sys/shm.h>
 // #include <sys/types.h>
-#include "../lib.h"
+#include "lib.h"
 // #include "../../01StringAndList/String.h"
 
 #define BUFFERLEN 200
@@ -26,13 +26,6 @@
 
 int main(int argc, char const *argv[])
 {
-    // struct protocol
-    // {
-    //     uint32_t number;
-    //     uint32_t slot[10];
-    //     int clientflag;
-    //     int serverflag[10];
-    // };
 
     int numberShmid = newSharedMemory(sizeof(uint32_t));
     int slotsShmid = newSharedMemory(sizeof(uint32_t) * 10);
@@ -43,7 +36,7 @@ int main(int argc, char const *argv[])
         return 1;
     }
     if (pid != 0) {
-        // parent process ("the client?")
+        // parent process ("the client")
         int bufferSize = sizeof(uint32_t) * 100;
         char userBuffer[bufferSize];
         // char serverBuffer[bufferSize];
@@ -52,11 +45,8 @@ int main(int argc, char const *argv[])
         uint32_t *slot = shmat(slotsShmid, NULL, 0);
 
         while (1) {
-            // if (canRead(STDIN_FILENO, 0, 500000)) { // if server has something for us to read
-            //     // print output ... ->
-            // }
 
-            if (slot[1]) {
+            if (slot[1]) {// if server has something for us to read
                 printf("parent received: %d\n", slot[1]);
                 slot[1] = 0;
             }
@@ -77,16 +67,30 @@ int main(int argc, char const *argv[])
         }
         return 0;
     }
-    // child process ("the server?")
+    // child process ("the server")
+// multithreaded
+// must handle up to 10 simultaneous requests without blocking
+//
+// take each input number (unsigned long) and will start up either the number of specified threads if given
+// (see Req.17) or 32 threads.
+// Each thread will be responsible for factorising an integer derived from the input number that is rotated
+// right by a different number of bits. Given an input number input number is K, each thread
+// #X will factorise K rotated right by (K-1) bits. For example say K and it has N significant bits, then thread
+// #0 will factorise the number K rotated right by 0 bits, thread
+// #1 will factorise K rotated right by 1 bit, thread
+// #2 will factorise K rotated right by 2 bits etc.
+// Rotating an integer K by B bits = ( K >> B) | (K << 32 – B). CLARIFICATION: C= K << (32 – B); Rotated = ( K >> B) | C
+
     uint32_t *number = shmat(numberShmid, NULL, 0);
     uint32_t *slot = shmat(slotsShmid, NULL, 0);
 
     while (1) {
         if (*number) {
             printf("child received: %d\n", *number);
+            // insert multi threading here
             slot[1] = factorise(*number);
             *number = 0;
-            exit(1);// for debugging only
+            exit(1);// for debugging only. comment if you like zombies
         }
     }
     return 0;

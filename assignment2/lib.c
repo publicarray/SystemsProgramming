@@ -15,13 +15,13 @@
 #include <limits.h>  // for CHAR_BIT
 
 uint32_t rotl32 (uint32_t value, unsigned int count) {
-    const unsigned int mask = (CHAR_BIT*sizeof(value)-1);
+    const unsigned int mask = (CHAR_BIT*sizeof(value)-1); // 32
     count &= mask;
     return (value<<count) | (value>>( (-count) & mask ));
 }
 
 uint32_t rotr32 (uint32_t value, unsigned int count) {
-    const unsigned int mask = (CHAR_BIT*sizeof(value)-1);
+    const unsigned int mask = (CHAR_BIT*sizeof(value)-1); // 32
     count &= mask;
     return (value>>count) | (value<<( (-count) & mask ));
 }
@@ -35,7 +35,7 @@ int32_t factorise(int32_t n) {
     for (int32_t i = 2; i*i <= n; i++) {
         if (n % i == 0) {
             // i = smallest factor found
-            return i; // n/i result
+            return i; // n/i = result
         }
     }
 
@@ -43,11 +43,10 @@ int32_t factorise(int32_t n) {
 }
 
 // Fermat primality test
-// a^p-1 mod p = 1?
+// a^(p-1) mod p = 1?
 // a= a random number that is less than p
 // p= int to check e.g 181
-// 68^180 mod 108 = 1 so probably a prime with low error
-
+// 68^180 mod 181 = 1 so probably a prime with low error
 
 #include <sys/types.h>
 #include <sys/select.h>
