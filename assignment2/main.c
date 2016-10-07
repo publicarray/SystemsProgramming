@@ -17,12 +17,22 @@
 #include <unistd.h>
 // #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <pthread.h>
 // #include <sys/types.h>
 #include "lib.h"
 // #include "../../01StringAndList/String.h"
 
 #define BUFFERLEN 200
 #define SHARED_MEM_SIZE 1024 // 1k
+
+void* func(void* args) {
+    int temp = rotr32( *(uint32_t*)args, 1);
+    // int temp = (*(int *)args)++;
+    // *(int32_t *)args += 1;
+    *(uint32_t*) args = temp;
+    printf("rotr32: %u\n", *(uint32_t *)args);
+    return args;
+}
 
 int main(int argc, char const *argv[])
 {
@@ -56,6 +66,9 @@ int main(int argc, char const *argv[])
                     removeNewLine(userBuffer);
                 if (strcmp(userBuffer, "q") == 0 || strcmp(userBuffer, "quit") == 0 || strcmp(userBuffer, "exit") == 0) {
                     wait(NULL); // wait for child. TODO: actually tell child we are quitting
+                    if (shmctl(numberShmid, IPC_RMID, NULL) == -1 || shmctl(slotsShmid, IPC_RMID, NULL) == -1) {
+                        perror("shmctl");
+                    }
                     puts("\n -- See you later!");
                     break; // exit loop
                 }
@@ -83,11 +96,22 @@ int main(int argc, char const *argv[])
 
     uint32_t *number = shmat(numberShmid, NULL, 0);
     uint32_t *slot = shmat(slotsShmid, NULL, 0);
+    pthread_t t1, t2, t3, t4;
 
     while (1) {
         if (*number) {
             printf("child received: %d\n", *number);
             // insert multi threading here
+            pthread_create(&t1, NULL, *func, (void *)number);
+            pthread_create(&t2, NULL, *func, (void *)number);
+            pthread_create(&t3, NULL, *func, (void *)number);
+            pthread_create(&t4, NULL, *func, (void *)number);
+
+            pthread_join(t1, NULL);
+            pthread_join(t2, NULL);
+            pthread_join(t3, NULL);
+            pthread_join(t4, NULL);
+
             slot[1] = factorise(*number);
             *number = 0;
             exit(1);// for debugging only. comment if you like zombies

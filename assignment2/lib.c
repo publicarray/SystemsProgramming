@@ -31,8 +31,8 @@ uint32_t rotr32 (uint32_t value, unsigned int count) {
 // https://en.wikipedia.org/wiki/Trial_division
 
 // 30 = 2,3,5 // prime factorisation
-int32_t factorise(int32_t n) {
-    for (int32_t i = 2; i*i <= n; i++) {
+uint32_t factorise(uint32_t n) {
+    for (uint32_t i = 2; i*i <= n; i++) {
         if (n % i == 0) {
             // i = smallest factor found
             return i; // n/i = result
@@ -65,6 +65,7 @@ int newSharedMemory (unsigned int size) {
     int shmid = shmget(IPC_PRIVATE, size, IPC_CREAT | 0666);
     if (shmid == -1) {
         perror("shmget");
+        // shmctl();
         exit(1);
     }
     return shmid;
