@@ -11,14 +11,20 @@
 #define CYN  "\x1B[36m"
 #define WHT  "\x1B[37m"
 
+#define UIL uint32_t
+// #define UIL unsigned int
+
 // #include "../01StringAndList/String.h"
 #include <stdint.h>
+// typedef uint_least32_t UIL;
 
-uint32_t rotl32 (uint32_t value, unsigned int count);
-uint32_t rotr32 (uint32_t value, unsigned int count);
-int32_t factorise(int32_t n);
+
+UIL rotl32 (UIL value, unsigned int count);
+UIL rotr32 (UIL value, unsigned int count);
+UIL factorise(UIL n);
 int canRead(int fd, int seconds, int microseconds);
 int newSharedMemory (unsigned int size);
 void removeNewLine(char* inStr);
+void printNum(UIL num);
 
 #endif

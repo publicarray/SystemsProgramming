@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "lib.h"
+
+// typedef uint_least32_t UIL;
+
 // start with how to bit shift in a cycle, threads and then inter-process/thread communications
 // after that you need to look into how to build the state bard
 
@@ -11,19 +15,36 @@
  * when the shift count is 0 or >= the width of unsigned int.
  */
 
-#include <stdint.h>  // for uint32_t, to get 32bit-wide rotates, regardless of the size of int.
+#include <stdint.h>  // for UIL, to get 32bit-wide rotates, regardless of the size of int.
 #include <limits.h>  // for CHAR_BIT
 
-uint32_t rotl32 (uint32_t value, unsigned int count) {
-    const unsigned int mask = (CHAR_BIT*sizeof(value)-1); // 32
+UIL rotl32 (UIL value, unsigned int count) {
+    UIL mask = (CHAR_BIT*sizeof(value)-1); // 32
     count &= mask;
     return (value<<count) | (value>>( (-count) & mask ));
 }
 
-uint32_t rotr32 (uint32_t value, unsigned int count) {
-    const unsigned int mask = (CHAR_BIT*sizeof(value)-1); // 32
+UIL rotr32 (UIL value, unsigned int count) {
+    UIL mask = (CHAR_BIT*sizeof(value)-1); // 32
     count &= mask;
     return (value>>count) | (value<<( (-count) & mask ));
+}
+
+int getBit(UIL num, int index)
+{
+    return (num & 0x80000000 >> index) != 0;
+}
+
+void printNum(UIL num)
+{
+    int i;
+    for (i = 0; i < 32; i++)
+    {
+        printf("%i", getBit(num, i)); //print out each bit
+        if ((i+1) % 4 == 0 && i > 0 && i < 31) printf("-");
+    }
+    printf("\n");
+
 }
 
 // Trial Division
@@ -31,8 +52,8 @@ uint32_t rotr32 (uint32_t value, unsigned int count) {
 // https://en.wikipedia.org/wiki/Trial_division
 
 // 30 = 2,3,5 // prime factorisation
-uint32_t factorise(uint32_t n) {
-    for (uint32_t i = 2; i*i <= n; i++) {
+UIL factorise(UIL n) {
+    for (UIL i = 2; i*i <= n; i++) {
         if (n % i == 0) {
             // i = smallest factor found
             return i; // n/i = result

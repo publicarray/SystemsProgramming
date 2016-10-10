@@ -26,19 +26,19 @@
 #define SHARED_MEM_SIZE 1024 // 1k
 
 void* func(void* args) {
-    int temp = rotr32( *(uint32_t*)args, 1);
+    // int temp = rotr32( *(UIL*)args, 1);
     // int temp = (*(int *)args)++;
+    // UIL temp =  *(UIL*) args;
     // *(int32_t *)args += 1;
-    *(uint32_t*) args = temp;
-    printf("rotr32: %u\n", *(uint32_t *)args);
-    return args;
+    // *(UIL*) args = temp;
+    // printf("thread got: %lu\n", *(UIL*) args);
+    return (void*) factorise(*(UIL*) args);
 }
 
 int main(int argc, char const *argv[])
 {
-
-    int numberShmid = newSharedMemory(sizeof(uint32_t));
-    int slotsShmid = newSharedMemory(sizeof(uint32_t) * 10);
+    int numberShmid = newSharedMemory(sizeof(UIL));
+    int slotsShmid = newSharedMemory(sizeof(UIL) * 10);
 
     int pid = fork();
     if (pid == -1) {
@@ -47,12 +47,12 @@ int main(int argc, char const *argv[])
     }
     if (pid != 0) {
         // parent process ("the client")
-        int bufferSize = sizeof(uint32_t) * 100;
+        int bufferSize = sizeof(UIL) * 100;
         char userBuffer[bufferSize];
         // char serverBuffer[bufferSize];
 
-        uint32_t *number = shmat(numberShmid, NULL, 0);
-        uint32_t *slot = shmat(slotsShmid, NULL, 0);
+        UIL *number = shmat(numberShmid, NULL, 0);
+        UIL *slot = shmat(slotsShmid, NULL, 0);
 
         while (1) {
 
@@ -63,7 +63,7 @@ int main(int argc, char const *argv[])
 
             if (canRead(STDIN_FILENO, 0, 500000)) { // if user typed something
                 fgets(userBuffer, sizeof userBuffer, stdin);
-                    removeNewLine(userBuffer);
+                removeNewLine(userBuffer);
                 if (strcmp(userBuffer, "q") == 0 || strcmp(userBuffer, "quit") == 0 || strcmp(userBuffer, "exit") == 0) {
                     wait(NULL); // wait for child. TODO: actually tell child we are quitting
                     if (shmctl(numberShmid, IPC_RMID, NULL) == -1 || shmctl(slotsShmid, IPC_RMID, NULL) == -1) {
@@ -84,7 +84,7 @@ int main(int argc, char const *argv[])
 // multithreaded
 // must handle up to 10 simultaneous requests without blocking
 //
-// take each input number (unsigned long) and will start up either the number of specified threads if given
+// take each input number (UIL) and will start up either the number of specified threads if given
 // (see Req.17) or 32 threads.
 // Each thread will be responsible for factorising an integer derived from the input number that is rotated
 // right by a different number of bits. Given an input number input number is K, each thread
@@ -94,26 +94,43 @@ int main(int argc, char const *argv[])
 // #2 will factorise K rotated right by 2 bits etc.
 // Rotating an integer K by B bits = ( K >> B) | (K << 32 – B). CLARIFICATION: C= K << (32 – B); Rotated = ( K >> B) | C
 
-    uint32_t *number = shmat(numberShmid, NULL, 0);
-    uint32_t *slot = shmat(slotsShmid, NULL, 0);
+    UIL *number = shmat(numberShmid, NULL, 0);
+    UIL *slot = shmat(slotsShmid, NULL, 0);
     pthread_t t1, t2, t3, t4;
-
+    int threadNum = 4;
     while (1) {
         if (*number) {
             printf("child received: %d\n", *number);
             // insert multi threading here
+            // do a bitshift, qoue jobs
+            // threads take jobs and factorise
+            // UIL temp = *number;
+            printNum(*number);
             pthread_create(&t1, NULL, *func, (void *)number);
+            *number = rotr32(*number, 1);
+            printNum(*number);
             pthread_create(&t2, NULL, *func, (void *)number);
+            *number = rotr32(*number, 1);
+            printNum(*number);
             pthread_create(&t3, NULL, *func, (void *)number);
+            *number = rotr32(*number, 1);
+            printNum(*number);
             pthread_create(&t4, NULL, *func, (void *)number);
+
+
+
 
             pthread_join(t1, NULL);
             pthread_join(t2, NULL);
             pthread_join(t3, NULL);
             pthread_join(t4, NULL);
 
-            slot[1] = factorise(*number);
-            *number = 0;
+            // slot[1] = factorise(*number);
+            // *number = 0;
+            for (int i = 0; i < threadNum; ++i)
+            {
+                printf("%d\n", slot[i]);
+            }
             exit(1);// for debugging only. comment if you like zombies
         }
     }
