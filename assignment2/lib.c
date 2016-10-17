@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "lib.h"
 
-// typedef uint_least32_t UIL;
+// typedef uint_least32_t i32;
 
 // start with how to bit shift in a cycle, threads and then inter-process/thread communications
 // after that you need to look into how to build the state bard
@@ -15,27 +15,27 @@
  * when the shift count is 0 or >= the width of unsigned int.
  */
 
-#include <stdint.h>  // for UIL, to get 32bit-wide rotates, regardless of the size of int.
+#include <stdint.h>  // for i32, to get 32bit-wide rotates, regardless of the size of int.
 #include <limits.h>  // for CHAR_BIT
 
-UIL rotl32 (UIL value, unsigned int count) {
-    UIL mask = (CHAR_BIT*sizeof(value)-1); // 32
+i32 rotl32 (i32 value, unsigned int count) {
+    i32 mask = (CHAR_BIT*sizeof(value)-1); // 32
     count &= mask;
     return (value<<count) | (value>>( (-count) & mask ));
 }
 
-UIL rotr32 (UIL value, unsigned int count) {
-    UIL mask = (CHAR_BIT*sizeof(value)-1); // 32
+i32 rotr32 (i32 value, unsigned int count) {
+    i32 mask = (CHAR_BIT*sizeof(value)-1); // 32
     count &= mask;
     return (value>>count) | (value<<( (-count) & mask ));
 }
 
-int getBit(UIL num, int index)
+int getBit(i32 num, int index)
 {
     return (num & 0x80000000 >> index) != 0;
 }
 
-void printNum(UIL num)
+void printNum(i32 num)
 {
     int i;
     for (i = 0; i < 32; i++)
@@ -52,8 +52,8 @@ void printNum(UIL num)
 // https://en.wikipedia.org/wiki/Trial_division
 
 // 30 = 2,3,5 // prime factorisation
-UIL factorise(UIL n) {
-    for (UIL i = 2; i*i <= n; i++) {
+i32 factorise(i32 n) {
+    for (i32 i = 2; i*i <= n; i++) {
         if (n % i == 0) {
             // i = smallest factor found
             return i; // n/i = result

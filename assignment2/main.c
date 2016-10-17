@@ -25,20 +25,22 @@
 #define BUFFERLEN 200
 #define SHARED_MEM_SIZE 1024 // 1k
 
-void* func(void* args) {
-    // int temp = rotr32( *(UIL*)args, 1);
+void* func(void* num) {
+    // int temp = rotr32( *(i32*)args, 1);
     // int temp = (*(int *)args)++;
-    // UIL temp =  *(UIL*) args;
+    // i32 temp =  *(i32*) args;
     // *(int32_t *)args += 1;
-    // *(UIL*) args = temp;
-    // printf("thread got: %lu\n", *(UIL*) args);
-    return (void*) factorise(*(UIL*) args);
+    // *(i32*) args = temp;
+    // printf("thread got: %lu\n", *(i32*) args);
+    i32 temp = (void*) factorise(*(i32*) num);
+    return NULL;
+
 }
 
 int main(int argc, char const *argv[])
 {
-    int numberShmid = newSharedMemory(sizeof(UIL));
-    int slotsShmid = newSharedMemory(sizeof(UIL) * 10);
+    int numberShmid = newSharedMemory(sizeof(i32));
+    int slotsShmid = newSharedMemory(sizeof(i32) * 10);
 
     int pid = fork();
     if (pid == -1) {
@@ -47,12 +49,12 @@ int main(int argc, char const *argv[])
     }
     if (pid != 0) {
         // parent process ("the client")
-        int bufferSize = sizeof(UIL) * 100;
+        int bufferSize = sizeof(i32) * 100;
         char userBuffer[bufferSize];
         // char serverBuffer[bufferSize];
 
-        UIL *number = shmat(numberShmid, NULL, 0);
-        UIL *slot = shmat(slotsShmid, NULL, 0);
+        i32 *number = shmat(numberShmid, NULL, 0);
+        i32 *slot = shmat(slotsShmid, NULL, 0);
 
         while (1) {
 
@@ -84,7 +86,7 @@ int main(int argc, char const *argv[])
 // multithreaded
 // must handle up to 10 simultaneous requests without blocking
 //
-// take each input number (UIL) and will start up either the number of specified threads if given
+// take each input number (i32) and will start up either the number of specified threads if given
 // (see Req.17) or 32 threads.
 // Each thread will be responsible for factorising an integer derived from the input number that is rotated
 // right by a different number of bits. Given an input number input number is K, each thread
@@ -94,19 +96,22 @@ int main(int argc, char const *argv[])
 // #2 will factorise K rotated right by 2 bits etc.
 // Rotating an integer K by B bits = ( K >> B) | (K << 32 – B). CLARIFICATION: C= K << (32 – B); Rotated = ( K >> B) | C
 
-    UIL *number = shmat(numberShmid, NULL, 0);
-    UIL *slot = shmat(slotsShmid, NULL, 0);
+    i32 *number = shmat(numberShmid, NULL, 0);
+    i32 *slot = shmat(slotsShmid, NULL, 0);
     pthread_t t1, t2, t3, t4;
     int threadNum = 4;
+    int i = 0;
     while (1) {
         if (*number) {
             printf("child received: %d\n", *number);
             // insert multi threading here
             // do a bitshift, qoue jobs
             // threads take jobs and factorise
-            // UIL temp = *number;
+            // i32 temp = *number;
             printNum(*number);
             pthread_create(&t1, NULL, *func, (void *)number);
+            i++;
+
             *number = rotr32(*number, 1);
             printNum(*number);
             pthread_create(&t2, NULL, *func, (void *)number);
