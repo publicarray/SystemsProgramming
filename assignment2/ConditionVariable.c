@@ -1,31 +1,31 @@
-#include "CondVar.h"
+#include "ConditionVariable.h"
 #include "Mutex.h"
 
-static void __freeCondVar(CondVar *self)
+static void __freeCondVar(ConditionVariable *self)
 {
     pthread_cond_destroy(&self->id);
 }
 
-static void __signalCondVar(CondVar *self)
+static void __signalCondVar(ConditionVariable *self)
 {
     pthread_cond_signal(&self->id);
 }
 
 
-static void __waitCondVar(CondVar *self, Mutex *mutex)
+static void __waitCondVar(ConditionVariable *self, Mutex *mutex)
 {
     pthread_cond_wait(&self->id, &mutex->id);
 }
 
 
-static void __broadcastCondVar(CondVar * self)
+static void __broadcastCondVar(ConditionVariable * self)
 {
     pthread_cond_broadcast(&self->id);
 }
 
-CondVar newCondVar()
+ConditionVariable newConditionVariable()
 {
-    CondVar cv;
+    ConditionVariable cv;
     pthread_cond_init(&cv.id, NULL);
     cv.free = __freeCondVar;
     cv.signal = __signalCondVar;
