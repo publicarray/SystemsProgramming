@@ -2,7 +2,7 @@
 #include "Mutex.h"
 #include "ConditionVariable.h"
 
-void __waitSemaphore(Semaphore *self) {
+static void __waitSemaphore(Semaphore *self) {
     self->mutex.lock(&self->mutex); //lock access to keys
     while (self->numberOfKeys <= 0) {//whilst there are no keys
         self->condVar.wait(&self->condVar, &self->mutex); //wait in a queue + free mutex m
@@ -12,20 +12,20 @@ void __waitSemaphore(Semaphore *self) {
     self->mutex.unlock(&self->mutex); //unlock access to key
 }
 
-void __signalSemaphore(Semaphore *self) {
+static void __signalSemaphore(Semaphore *self) {
     self->mutex.lock(&self->mutex); //lock access to keys
     self->numberOfKeys += 1; //add a key
     self->condVar.broadcast(&self->condVar); //wake everyone, there is a new key!
     self->mutex.unlock(&self->mutex); //allow access to keys
 }
 
-void __signalXSemaphore(Semaphore *self, int numNewKeys) {
+static void __signalXSemaphore(Semaphore *self, int numNewKeys) {
     for (int i = 0; i < numNewKeys; i++) {
         __signalSemaphore(self);
     }
 }
 
-void __freeSemaphore(Semaphore *self) {
+static void __freeSemaphore(Semaphore *self) {
     self->mutex.free(&self->mutex);
     self->condVar.free(&self->condVar);
     self->numberOfKeys = 0;
