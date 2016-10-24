@@ -29,7 +29,6 @@ void __freeSemaphore(Semaphore *self) {
     self->mutex.free(&self->mutex);
     self->condVar.free(&self->condVar);
     self->numberOfKeys = 0;
-    self = NULL;
 }
 
 Semaphore newSemaphore(int initialNumKeys) {

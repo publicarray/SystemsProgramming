@@ -4,7 +4,6 @@
 static void __freeCondVar(ConditionVariable *self)
 {
     pthread_cond_destroy(&self->id);
-    self = NULL;
 }
 
 static void __signalCondVar(ConditionVariable *self)
