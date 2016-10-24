@@ -26,5 +26,6 @@ int canRead(int fd, int seconds, int microseconds);
 int newSharedMemory (unsigned int size);
 void removeNewLine(char* inStr);
 void printNum(i32 num);
+void tsleep(unsigned int milliseconds);
 
 #endif

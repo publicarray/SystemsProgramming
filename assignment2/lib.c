@@ -100,6 +100,14 @@ void removeNewLine(char* inStr) {
     }
 }
 
+#include <unistd.h>
+
+void tsleep(unsigned int milliseconds)
+{
+    milliseconds *= 1000;
+    usleep((useconds_t)milliseconds);
+}
+//
 // int main(int argc, char const *argv[])
 // {
 //     printf("%d\n", rotl32(32, 3));
