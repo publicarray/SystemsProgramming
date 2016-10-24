@@ -26,6 +26,7 @@ void __QueueDelete(Queue *self)
     }
 
     self->size = 0;
+    self->root = NULL;
 }
 
 void __QueuePush(Queue *self, void *data)
