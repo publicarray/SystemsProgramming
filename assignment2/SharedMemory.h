@@ -10,7 +10,7 @@ typedef struct SharedMemory_
 
     void (*free)(struct SharedMemory_ *self);
     void (*update)(struct SharedMemory_ *self);
-    uint32_t * (*getNum)(struct SharedMemory_ *self);
+    uint32_t * (*getNumP)(struct SharedMemory_ *self);
 
 } SharedMemory;
 

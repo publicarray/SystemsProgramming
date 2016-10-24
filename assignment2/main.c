@@ -118,9 +118,9 @@ void* worker (void* num) {
             for (i32 i = 2; i*i <= j.data; i++) {
                 if (j.data % i == 0) {
                     printf("factor: %d\n", i);
-                    while (!serverflag.getNum(&serverflag)[j.id]); // bissy waiting
-                    slots.getNum(&slots)[j.id] = i; // == ((i32*)slots.data)[j.id] = i;
-                    serverflag.getNum(&serverflag)[j.id] = 1;
+                    while (!serverflag.getNumP(&serverflag)[j.id]); // bissy waiting
+                    slots.getNumP(&slots)[j.id] = i; // == ((i32*)slots.data)[j.id] = i;
+                    serverflag.getNumP(&serverflag)[j.id] = 1;
 
                     // i = smallest factor found
                     // signal facto found, update shared vars
@@ -130,7 +130,7 @@ void* worker (void* num) {
             }
 
 
-            j.output = slots.getNum(&slots)[j.id]; // largest factor atm
+            j.output = slots.getNumP(&slots)[j.id]; // largest factor atm
             tsleep(200);
             doneQMutex.lock(&doneQMutex);
             doneQueue.push(&doneQueue, &j);
@@ -183,7 +183,7 @@ int main () {
         doneQMutex.unlock(&doneQMutex);
         if (hasJobs)
         {
-            printf("slot #%d = %d\n", j.id, slots.getNum(&slots)[j.id]);
+            printf("slot #%d = %d\n", j.id, slots.getNumP(&slots)[j.id]);
             printJob(&j);
         }
     }
