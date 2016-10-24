@@ -80,18 +80,6 @@ int canRead(int fd, int seconds, int microseconds) {
     return select(fd+1, &readfd, NULL, NULL, &time) > 0;
 }
 
-#include <sys/shm.h>
-// #include <sys/types.sh>
-int newSharedMemory (unsigned int size) {
-    int shmid = shmget(IPC_PRIVATE, size, IPC_CREAT | 0666);
-    if (shmid == -1) {
-        perror("shmget");
-        // shmctl();
-        exit(1);
-    }
-    return shmid;
-}
-
 #include <string.h>
 
 void removeNewLine(char* inStr) {

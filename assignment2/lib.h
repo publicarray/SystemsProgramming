@@ -23,7 +23,6 @@ i32 rotl32 (i32 value, unsigned int count);
 i32 rotr32 (i32 value, unsigned int count);
 i32 factorise(i32 n);
 int canRead(int fd, int seconds, int microseconds);
-int newSharedMemory (unsigned int size);
 void removeNewLine(char* inStr);
 void printNum(i32 num);
 void tsleep(unsigned int milliseconds);

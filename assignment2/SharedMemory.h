@@ -8,8 +8,8 @@ typedef struct SharedMemory_
     int id;
     void *data;
 
-    void (*free)(SharedMemory_ *self);
-    void * (*getData)(SharedMemory_ *self);
+    void (*free)(struct SharedMemory_ *self);
+    void * (*getData)(struct SharedMemory_ *self);
 
 } SharedMemory;
 
