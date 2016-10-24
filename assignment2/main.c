@@ -16,9 +16,10 @@
 #include <string.h>
 #include <unistd.h>
 // #include <sys/ipc.h>
-#include <sys/shm.h>
+// #include <sys/shm.h>
 // #include <sys/types.h>
 #include "Thread.h"
+#include "SharedMemory.h"
 #include "Mutex.h"
 #include "ConditionVariable.h"
 #include "Semaphore.h"
@@ -41,11 +42,15 @@
 
 // }
 
-Semaphore semaphore;
-Mutex queueMutex;
-Mutex doneQueueMutex;
-Queue jobQueue;
-Queue doneQueue;
+Semaphore jobSemaphore, doneSemaphore;
+Mutex jobQMutex, doneQMutex;
+Queue jobQueue, doneQueue;
+SharedMemory number, clientflag, slots, serverflag;
+// shared vars
+// i32 number;
+// int clientflag = 0;
+// i32 slots[10] = {0,0,0,0,0,0,0,0,0,0};
+// int serverflag[10] = {0,0,0,0,0,0,0,0,0,0};
 
 typedef struct {
     int id;
@@ -69,9 +74,14 @@ void terminate (int sig) {
     // clean up
     jobQueue.destroy(&jobQueue);
     doneQueue.destroy(&doneQueue);
-    queueMutex.free(&queueMutex);
-    doneQueueMutex.free(&doneQueueMutex);
-    semaphore.free(&semaphore);
+    jobQMutex.free(&jobQMutex);
+    doneQMutex.free(&doneQMutex);
+    jobSemaphore.free(&jobSemaphore);
+    doneSemaphore.free(&doneSemaphore);
+    number.free(&number);
+    clientflag.free(&clientflag);
+    slots.free(&slots);
+    serverflag.free(&serverflag);
     puts("\nShut-down successfully!");
     // int pid;
     // while ((pid = wait(NULL)) > 0) { // wait for processes to finish
@@ -89,25 +99,42 @@ void* worker (void* num) {
         int hasJob = 0;
         Job j;
 
-        semaphore.wait(&semaphore); // wait for job
+        jobSemaphore.wait(&jobSemaphore); // wait for job
         printf("Woken up\n");
         // we might be woken up at any time
-        queueMutex.lock(&queueMutex);
+        jobQMutex.lock(&jobQMutex);
         if (!jobQueue.isEmpty(&jobQueue)) {
             printf("Getting job..\n");
             hasJob = 1;
             j = *(Job*) jobQueue.pop(&jobQueue);
         }
-        queueMutex.unlock(&queueMutex);
+        jobQMutex.unlock(&jobQMutex);
 
         // do job
         if (hasJob) {
             printf("Working job #%d\n", j.id);
-            j.output = factorise(j.data);
-            tsleep(2000);
-            doneQueueMutex.lock(&doneQueueMutex);
+
+            // Factorise()
+            for (i32 i = 2; i*i <= j.data; i++) {
+                if (j.data % i == 0) {
+                    printf("factor: %d\n", i);
+                    while (!serverflag.getNum(&serverflag)[j.id]); // bissy waiting
+                    slots.getNum(&slots)[j.id] = i; // == ((i32*)slots.data)[j.id] = i;
+                    serverflag.getNum(&serverflag)[j.id] = 1;
+
+                    // i = smallest factor found
+                    // signal facto found, update shared vars
+                    // wait for client to read.
+                    // return i; // n/i = result
+                }
+            }
+
+
+            j.output = slots.getNum(&slots)[j.id]; // largest factor atm
+            tsleep(200);
+            doneQMutex.lock(&doneQMutex);
             doneQueue.push(&doneQueue, &j);
-            doneQueueMutex.unlock(&doneQueueMutex);
+            doneQMutex.unlock(&doneQMutex);
         }
     }
     return 0;
@@ -116,11 +143,14 @@ void* worker (void* num) {
 int main () {
     signal(SIGINT, terminate); // cleanup [Control + C]
     signal(SIGQUIT, terminate); // cleanup
-    semaphore = newSemaphore(0);
-    queueMutex = newMutex();
-    doneQueueMutex = newMutex();
+    jobSemaphore = newSemaphore(0);
+    doneSemaphore = newSemaphore(0);
+    jobQMutex = newMutex();
+    doneQMutex = newMutex();
     jobQueue = newQueue();
     doneQueue = newQueue();
+    number = newSharedMemory(sizeof (i32)), clientflag = newSharedMemory(sizeof (i32));
+    slots = newSharedMemory(sizeof (i32)*10), serverflag = newSharedMemory(sizeof (i32)*10);
 
     int numThreads = 4;
 
@@ -130,29 +160,30 @@ int main () {
         t.startDetached(&t, worker, 0);
     }
 
-    queueMutex.lock(&queueMutex);
+    jobQMutex.lock(&jobQMutex);
     Job job1; initJob(&job1, 1, 2);
     Job job2; initJob(&job2, 2, 30);
     jobQueue.push(&jobQueue, &job1);
     jobQueue.push(&jobQueue, &job2);
     printJob(&job1);
     printJob(&job2);
-    semaphore.signalX(&semaphore, 2); // signal that there is a new job available
-    queueMutex.unlock(&queueMutex);
+    jobSemaphore.signalX(&jobSemaphore, 2); // signal that there is a new job available
+    jobQMutex.unlock(&jobQMutex);
 
 
     while(1) // wait for jobs to complete
     {
         Job j;
         int hasJobs = 0;
-        doneQueueMutex.lock(&doneQueueMutex);
+        doneQMutex.lock(&doneQMutex);
             hasJobs = !doneQueue.isEmpty(&doneQueue);
             if (hasJobs) {
                 j = *(Job*) doneQueue.pop(&doneQueue);
             }
-        doneQueueMutex.unlock(&doneQueueMutex);
+        doneQMutex.unlock(&doneQMutex);
         if (hasJobs)
         {
+            printf("slot #%d = %d\n", j.id, slots.getNum(&slots)[j.id]);
             printJob(&j);
         }
     }
@@ -163,9 +194,9 @@ int main () {
 // clean up
     jobQueue.destroy(&jobQueue);
     doneQueue.destroy(&doneQueue);
-    queueMutex.free(&queueMutex);
-    doneQueueMutex.free(&doneQueueMutex);
-    semaphore.free(&semaphore);
+    jobQMutex.free(&jobQMutex);
+    doneQMutex.free(&doneQMutex);
+    jobSemaphore.free(&jobSemaphore);
 
 
     // Queue q1 = newQueue();

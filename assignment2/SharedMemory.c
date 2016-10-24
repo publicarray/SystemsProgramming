@@ -9,22 +9,26 @@ static void __freeSharedMemory(SharedMemory *self) {
     }
 }
 
-static void * __getDataSharedMemory(SharedMemory *self) {
+static void __updatePointerSharedMemory(SharedMemory *self) {
     self->data = shmat(self->id, NULL, 0);
-    return self->data;
+}
+
+static uint32_t * __getAsNumSharedMemory(SharedMemory *self) {
+    return (uint32_t *)(self->data);
 }
 
 SharedMemory newSharedMemory(size_t size) {
     SharedMemory shm;
-    shm.data = NULL;
     shm.id = shmget(IPC_PRIVATE, size, IPC_CREAT | 0666);
     if (shm.id == -1) {
         perror("shmget");
         exit(1);
     }
+    __updatePointerSharedMemory(&shm);
 
     shm.free = __freeSharedMemory;
-    shm.getData = __getDataSharedMemory;
+    shm.update = __updatePointerSharedMemory;
+    shm.getNum = __getAsNumSharedMemory;
 
     return shm;
 }
