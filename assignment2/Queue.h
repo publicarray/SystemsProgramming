@@ -10,7 +10,7 @@ typedef struct Node_
 
 typedef struct Queue_
 {
-    int size;
+    unsigned int size;
     Node *root;
 
     void * (*pop)(struct Queue_ *self);

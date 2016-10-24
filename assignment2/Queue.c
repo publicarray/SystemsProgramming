@@ -2,19 +2,19 @@
 #include <stdlib.h>
 #include "Queue.h"
 
-int __QueueIsEmpty(Queue *self)
+static int __isEmptyQueue(Queue *self)
 {
     return (self->size <= 0);
 }
 
-unsigned int __QueueLength(Queue *self)
+static unsigned int __lengthQueue(Queue *self)
 {
     return (self->size);
 }
 
-void __QueueDelete(Queue *self)
+static void __deleteQueue(Queue *self)
 {
-    if (__QueueIsEmpty(self)) {
+    if (__isEmptyQueue(self)) {
         return;
     }
 
@@ -29,13 +29,13 @@ void __QueueDelete(Queue *self)
     self->root = NULL;
 }
 
-void __QueuePush(Queue *self, void *data)
+static void __pushQueue(Queue *self, void *data)
 {
     Node *newNode = malloc(sizeof(Node)); // create a new node
     newNode->data = data;
     newNode->next = NULL;
 
-    if (__QueueIsEmpty(self)) {
+    if (__isEmptyQueue(self)) {
         self->root = newNode;
     } else {
         Node *temp = self->root;
@@ -48,9 +48,9 @@ void __QueuePush(Queue *self, void *data)
     self->size++;
 }
 
-void * __QueuePop(Queue * self)
+static void * __popQueue(Queue * self)
 {
-    if (__QueueIsEmpty(self)) {
+    if (__isEmptyQueue(self)) {
         return NULL;
     }
 
@@ -62,7 +62,7 @@ void * __QueuePop(Queue * self)
 }
 
 //--- print out the content of the queue---
-void __QueuePrintPtr(Queue *self)
+static void __printPtrQueue(Queue *self)
 {
     Node *temp = self->root;
     while (temp != NULL) {
@@ -72,7 +72,7 @@ void __QueuePrintPtr(Queue *self)
     printf("\n");
 }
 
-void __QueuePrintInt(Queue *self)
+static void __printIntQueue(Queue *self)
 {
     Node *temp = self->root;
     while (temp != NULL) {
@@ -87,12 +87,12 @@ Queue newQueue()
     Queue q;
     q.size = 0;
     q.root = NULL;
-    q.pop = __QueuePop;
-    q.push = __QueuePush;
-    q.destroy = __QueueDelete;
-    q.length = __QueueLength;
-    q.isEmpty = __QueueIsEmpty;
-    q.print = __QueuePrintPtr;
-    q.printInt = __QueuePrintInt;
+    q.pop = __popQueue;
+    q.push = __pushQueue;
+    q.destroy = __deleteQueue;
+    q.length = __lengthQueue;
+    q.isEmpty = __isEmptyQueue;
+    q.print = __printPtrQueue;
+    q.printInt = __printIntQueue;
     return q;
 }
