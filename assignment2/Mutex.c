@@ -12,7 +12,6 @@ static Mutex __initMutex()
 static void __freeMutex(Mutex * self)
 {
     pthread_mutex_destroy(&self->id);
-    self = NULL;
 }
 
 
