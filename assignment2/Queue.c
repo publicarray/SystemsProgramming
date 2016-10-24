@@ -19,9 +19,9 @@ void __QueueDelete(Queue *self)
     }
 
     Node *ptr = self->root;
-    while (ptr != 0x00) {
+    while (ptr != NULL) {
         Node *temp = ptr;
-        temp = temp->next;
+        ptr = ptr->next;
         free(temp);
     }
 
@@ -50,7 +50,7 @@ void __QueuePush(Queue *self, void *data)
 void * __QueuePop(Queue * self)
 {
     if (__QueueIsEmpty(self)) {
-        return 0x00;
+        return NULL;
     }
 
     Node *front = self->root;
@@ -85,7 +85,7 @@ Queue newQueue()
 {
     Queue q;
     q.size = 0;
-    q.root = 0x00;
+    q.root = NULL;
     q.pop = __QueuePop;
     q.push = __QueuePush;
     q.destroy = __QueueDelete;
