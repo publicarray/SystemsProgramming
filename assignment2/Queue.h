@@ -13,13 +13,13 @@ typedef struct Queue_
     int size;
     Node *root;
 
-    void(*pop)(Queue_ *self);
-    void(*push)(Queue_ *self, void *data);
-    void(*destroy)(Queue_ *self);
-    void(*length)(Queue_ *self);
-    void(*isEmpty)(Queue_ *self);
-    void(*print)(Queue_ *self);
-    void(*printInt)(Queue_ *self);
+    void * (*pop)(struct Queue_ *self);
+    void (*push)(struct Queue_ *self, void *data);
+    void (*destroy)(struct Queue_ *self);
+    unsigned int (*length)(struct Queue_ *self);
+    int (*isEmpty)(struct Queue_ *self);
+    void (*print)(struct Queue_ *self);
+    void (*printInt)(struct Queue_ *self);
 } Queue;
 
 Queue newQueue();

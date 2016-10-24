@@ -7,7 +7,7 @@ int __QueueIsEmpty(Queue *self)
     return (self->size <= 0);
 }
 
-int __QueueLength(Queue *self)
+unsigned int __QueueLength(Queue *self)
 {
     return (self->size);
 }
