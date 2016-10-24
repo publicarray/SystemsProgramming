@@ -2,7 +2,7 @@ OUTDIR := bin/
 ISTALLDIR := /usr/local/bin/
 OUT := main
 
-SRC = main.c lib.c Thread.c Queue.c
+SRC = main.c lib.c Thread.c Mutex.c CondVar.c Queue.c
 # ../01StringAndList/String.c
 #../SocketType.c
 CFLAGS := -Wall -O3
