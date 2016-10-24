@@ -16,14 +16,15 @@ static void * __getDataSharedMemory(SharedMemory *self) {
 
 SharedMemory newSharedMemory(size_t size) {
     SharedMemory shm;
-    shm.data = 0x00;
-    shm.free = __freeSharedMemory;
-    shm.getData = __getDataSharedMemory;
+    shm.data = NULL;
     shm.id = shmget(IPC_PRIVATE, size, IPC_CREAT | 0666);
     if (shm.id == -1) {
         perror("shmget");
         exit(1);
     }
+
+    shm.free = __freeSharedMemory;
+    shm.getData = __getDataSharedMemory;
 
     return shm;
 }
