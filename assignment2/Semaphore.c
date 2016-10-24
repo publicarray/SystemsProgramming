@@ -25,6 +25,13 @@ void __signalXSemaphore(Semaphore *self, int numNewKeys) {
     }
 }
 
+void __freeSemaphore(Semaphore *self) {
+    self->mutex.free(&self->mutex);
+    self->condVar.free(&self->condVar);
+    self->numberOfKeys = 0;
+    self = NULL;
+}
+
 Semaphore newSemaphore(int initialNumKeys) {
     Semaphore s;
     s.mutex = newMutex();
@@ -34,6 +41,7 @@ Semaphore newSemaphore(int initialNumKeys) {
     s.wait = __waitSemaphore;
     s.signal = __signalSemaphore;
     s.signalX = __signalXSemaphore;
+    s.free = __freeSemaphore;
 
     return s;
 }

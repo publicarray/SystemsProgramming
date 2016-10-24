@@ -13,6 +13,7 @@ typedef struct Semaphore_
     void(*wait)(struct Semaphore_ *self);
     void(*signal)(struct Semaphore_ *self);
     void(*signalX)(struct Semaphore_ *self, int numNewKeys);
+    void(*free)(struct Semaphore_ *self);
 } Semaphore;
 
 Semaphore newSemaphore(int initialNumKeys);
