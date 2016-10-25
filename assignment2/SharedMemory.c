@@ -14,13 +14,13 @@ static void __freeSharedMemory(SharedMemory *self) {
     self->dataInt = NULL;
 }
 
-static void __attachPointerSharedMemory(SharedMemory *self) {
+static void * __attachPointerSharedMemory(SharedMemory *self) {
 
     // SHM_RDONLY = read only
-    // SHM_RND = round down to SHMLBA. Otherwise shmaddr must be a page-aligned address at which the attach occurs (1024, pagesize = 4096).
+    // SHM_RND = round down to SHMLBA. Otherwise shmaddr must be a page-aligned address at which the attach occurs (1024)( pagesize = 4096).
     // For the current implementation the SHMLBA value is PAGE_SIZE
 
-    self->data = shmat(self->id, NULL, SHM_RND);
+    self->data = shmat(self->id, NULL, 0);
     if (shmdt(self->data) == -1) {
         fprintf(stderr, "failed to attach\n");
         perror("shmat");
@@ -28,12 +28,12 @@ static void __attachPointerSharedMemory(SharedMemory *self) {
     }
     self->data32 = self->data;
     self->dataInt = self->data;
+    return self->data;
 }
 
 static void __print32SharedMemory(SharedMemory *self) {
     for (int i = 0; i < self->size; ++i) {
         printf("%p -> %d\n", self->data32+i, self->data32[i]);
-        printf("%p\n", self->data32+i);
     }
 }
 

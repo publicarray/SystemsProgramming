@@ -12,7 +12,7 @@ typedef struct SharedMemory_
     uint32_t *data32;
 
     void (*free)(struct SharedMemory_ *self);
-    void (*attach)(struct SharedMemory_ *self);
+    void * (*attach)(struct SharedMemory_ *self);
     void (*print)(struct SharedMemory_ *self);
 
 } SharedMemory;

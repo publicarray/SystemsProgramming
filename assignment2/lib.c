@@ -82,7 +82,7 @@ int canRead(int fd, int seconds, int microseconds) {
 
 #include <sys/shm.h>
 
-int newSharedMemory(unsigned int size) {
+int newSharedMem(unsigned int size) {
     int shmid = shmget(IPC_PRIVATE, size, IPC_CREAT | 0666);
     if (shmid < 0) {
         fprintf(stderr, "failed to create shared memory segment\n");
@@ -92,13 +92,13 @@ int newSharedMemory(unsigned int size) {
     return shmid;
 }
 
-void freeSharedMemory(int shmid) {
+void freeSharedMem(int shmid) {
     if (shmctl(shmid, IPC_RMID, NULL) == -1) {
         perror("shmctl");
     }
 }
 
-void* getSharedMemory(int shmid) {
+void* getSharedMem(int shmid) {
     void* p = shmat(shmid, NULL, 0);
     if ((int)p == -1) {
         fprintf(stderr, "failed to attach\n");

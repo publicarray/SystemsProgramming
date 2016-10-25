@@ -2,15 +2,15 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/shm.h>
+#include "SharedMemory.h"
 #include "lib.h"
 
-int shmid = 0;
+SharedMemory shmid;
 
 void cleanup() {
     puts("\nCleaning up...!");
-    if (shmid) {
-        freeSharedMem(shmid);
-        shmid = 0;
+    if (shmid.id) {
+        shmid.free(&shmid);
     }
 }
 void terminate(int sig) {
@@ -24,9 +24,9 @@ int main () {
     i32* slots = NULL;
     signal(SIGINT, terminate); // cleanup [Control + C]
     signal(SIGQUIT, terminate); // cleanup
-    shmid = newSharedMem(sizeof(i32) * 10);
-    printf("got shmid: %i\n", shmid);
-    slots = getSharedMem(shmid);
+    shmid = newSharedMemory(sizeof(i32) * 10);
+    printf("got shmid: %i\n", shmid.id);
+    slots = shmid.attach(&shmid);
     printf("got p: %p\n", slots);
     int pid = fork();
     if (pid == -1) {
@@ -43,7 +43,7 @@ int main () {
     }
     // child
     slots[2] = 7;
-    slots = getSharedMem(shmid);
+    slots = shmid.attach(&shmid);
     printf("got p: %p\n", slots);
 
     printf("child got: %u\n", slots[2]);
