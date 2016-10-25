@@ -18,10 +18,15 @@ static void* __joinThread(Thread * self) {
     return value_ptr;
 }
 
+static void __killThread(Thread * self) {
+    pthread_kill(self->id, 0);
+}
+
 Thread newThread() {
     Thread t;
     t.startDetached = __detachedThread;
     t.start = __startThread;
     t.join = __joinThread;
+    t.kill = __killThread;
     return t;
 }

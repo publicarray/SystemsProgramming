@@ -9,6 +9,7 @@ typedef struct Thread_
     void (*startDetached)(struct Thread_ * self, void* (*f) (void *), void * data); //start thread detatched (don't call join)
     void (*start)(struct Thread_ * self, void* (*f) (void *), void * data); //start regular thread (call join to get return value and clean up memory)
     void * (*join)(struct Thread_ * self); //wait for thread to finish and get the return value
+    void (*kill)(struct Thread_ * self); //kill thread
 } Thread;
 
 Thread newThread();
