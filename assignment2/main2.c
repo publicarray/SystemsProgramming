@@ -93,10 +93,9 @@ void * worker (void * data) {
                             mutexes[j.id].unlock(&mutexes[j.id]);
                             break;
                         } else {
-//                            mutexes[j.id].unlock(&mutexes[j.id]);
-                            printf("serverflag #%d -> %c\n", j.id, serverflag[j.id]);
+//                            printf("serverflag #%d -> %c\n", j.id, serverflag[j.id]);
                             mutexes[j.id].unlock(&mutexes[j.id]);
-                            tsleep(500);
+                            tsleep(10);
                         }
                     }
                     
@@ -109,10 +108,9 @@ void * worker (void * data) {
                             mutexes[j.id].unlock(&mutexes[j.id]);
                             break;
                         } else {
-                            //mutexes[j.id].unlock(&mutexes[j.id]);
-                            printf("serverflag #%d -> %c\n", j.id, serverflag[j.id]);
+//                            printf("serverflag #%d -> %c\n", j.id, serverflag[j.id]);
                             mutexes[j.id].unlock(&mutexes[j.id]);
-                            tsleep(500);
+                            tsleep(10);
                         }
                     }
 //                    doneQMutex.lock(&doneQMutex);
@@ -196,7 +194,7 @@ int main(int argc, char const *argv[]) {
         int id = 0;
         
         // Thread pool
-        int numThreads = 4;
+        int numThreads = 32;
 
         if (argv[1]) {
             numThreads = atoi(argv[1]);
@@ -216,13 +214,13 @@ int main(int argc, char const *argv[]) {
                 *clientflag = '0';
 
                 jobQMutex.lock(&jobQMutex);
-                for (i = 0; i <= 1; i++) {
+                for (i = 0; i < 32; i++) {
                     Job j = newJob(id, num);
                     num = rotr32(num, 1);
                     jobQueue.push(&jobQueue, j);
                 }
                 jobQMutex.unlock(&jobQMutex);
-                jobSemaphore.signalX(&jobSemaphore, 1); // signal threads to work
+                jobSemaphore.signalX(&jobSemaphore, 32); // signal threads to work
                 id++; // next id
             }
             tsleep(500);
@@ -264,7 +262,7 @@ int main(int argc, char const *argv[]) {
          }
          
          // read data from user
-         if (canRead(STDIN_FILENO, 0, 5000)) { // if user typed something
+         if (canRead(STDIN_FILENO, 0, 100)) { // if user typed something
              fgets(userBuffer, sizeof userBuffer, stdin);
              removeNewLine(userBuffer);
              if (strcmp(userBuffer, "q") == 0 || strcmp(userBuffer, "quit") == 0 || strcmp(userBuffer, "exit") == 0) {
@@ -277,7 +275,7 @@ int main(int argc, char const *argv[]) {
              }
 //             if () // all slots are in use, tell user we are busy
             // send data to server
-            while(*clientflag != '0'){tsleep(50);} // wait untill allowed to write
+            while(*clientflag != '0'){tsleep(50);} // wait until allowed to write
             i32 temp = *number = atoi(userBuffer); // pass to server
             *clientflag = '1';
             while(*clientflag != '0'){tsleep(50);}
