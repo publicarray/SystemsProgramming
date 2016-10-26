@@ -20,11 +20,12 @@
 Semaphore jobSemaphore, doneSemaphore;
 Mutex jobQMutex, clientflagMutex, numberMutex;
 JobQueue jobQueue, doneQueue;
-int numberId, clientflagId, slotsId, serverflagId;
+int shmid;
+void * sharedMem = NULL;
 int isClean = 0;
-char *clientflag, *serverflag;
-i32 *number, *slot;
-Mutex *mutexes;
+char *clientflag = NULL, *serverflag = NULL, *progress = NULL;
+i32 *number = NULL, *slot = NULL;
+Mutex *mutexes = NULL;
 
 void cleanup() {
     if (isClean == 0) {
@@ -36,10 +37,7 @@ void cleanup() {
         numberMutex.free(&numberMutex);
         jobSemaphore.free(&jobSemaphore);
         doneSemaphore.free(&doneSemaphore);
-        freeSharedMem(numberId);
-        freeSharedMem(clientflagId);
-        freeSharedMem(slotsId);
-        freeSharedMem(serverflagId);
+        freeSharedMem(shmid);
         free(mutexes);
         isClean = 1;
     }
@@ -57,6 +55,15 @@ void terminate (int sig) {
          }
      }
     exit(0);
+}
+
+int findFreeSlot(int *slotsInUse) {
+    for (int i = 0; i < numConcurrentJobs; i++) {
+        if (slotsInUse[i] == 0) {
+            return i;
+        }
+    }
+    return -1; // all slots are in use
 }
 
 void * worker (void * data) {
@@ -113,6 +120,9 @@ void * worker (void * data) {
                             tsleep(10);
                         }
                     }
+                    
+                    j.progress = (i*i)/j.data;
+                    
 //                    doneQMutex.lock(&doneQMutex);
 //                    doneQueue.push(&doneQueue, &j);
 //                    doneQMutex.unlock(&doneQMutex);
@@ -133,9 +143,27 @@ void * worker (void * data) {
                     // return i; // n/i = result
                 }
             }
-            printf("DONE: \n");
+            
+            
+            
+            // tel the clint that we are done
+//            while(1) {
+//                mutexes[j.id].lock(&mutexes[j.id]);
+//                if (serverflag[j.id] == '0') {
+//                    serverflag[j.id] = '2'; // 2 = done
+//                    mutexes[j.id].unlock(&mutexes[j.id]);
+//                    break;
+//                } else {
+//                    mutexes[j.id].unlock(&mutexes[j.id]);
+//                    tsleep(10);
+//                }
+//            }
+            
+            
+            printf("Thread is DONE: \n");
             hasJob = 0;
             j.done = 1;
+            
 //            doneQMutex.lock(&doneQMutex);
 //            doneQueue.push(&doneQueue, &j);
 //            doneQMutex.unlock(&doneQMutex);
@@ -156,15 +184,15 @@ int main(int argc, char const *argv[]) {
     numberMutex = newMutex();
     jobQueue = newJobQueue();
     doneQueue = newJobQueue();
-    clientflagId = newSharedMem(sizeof(char));
-    serverflagId = newSharedMem(sizeof(char) * 10);
-    numberId = newSharedMem(sizeof (i32));
-    slotsId = newSharedMem(sizeof (i32) * 10);
-
-    clientflag = getSharedMem(clientflagId);
-    serverflag = getSharedMem(serverflagId);
-    number = getSharedMem(numberId);
-    slot = getSharedMem(slotsId);
+    shmid = newSharedMem(1 + 10 + sizeof(i32) + (sizeof(i32)*10) + 10);
+    sharedMem = getSharedMem(shmid);
+    
+    clientflag = sharedMem;
+    serverflag = sharedMem + 1;
+    number = sharedMem + 1 + 10;
+    slot = sharedMem + 1 + 10 + sizeof(i32);
+    progress = sharedMem + 1 + 10 + sizeof(i32) + sizeof(i32) * 10;
+    
     *clientflag = '0'; // set intial values
     for (i = 0; i < 10; i++) {
         serverflag[i] = '0';
@@ -180,10 +208,15 @@ int main(int argc, char const *argv[]) {
     if (pid == 0) {
         printf("child started\n");
         // child process ("the server")
-        clientflag = getSharedMem(clientflagId);
-        serverflag = getSharedMem(serverflagId);
-        number = getSharedMem(numberId);
-        slot = getSharedMem(slotsId);
+        sharedMem = getSharedMem(shmid);
+
+        clientflag = sharedMem;
+        serverflag = sharedMem + 1;
+        number = sharedMem + 1 + 10;
+        slot = sharedMem + 1 + 10 + sizeof(i32);
+        progress = sharedMem + 1 + 10 + sizeof(i32) + sizeof(i32) * 10;
+        
+        int slotsInUse[10] = {0};
         
         mutexes = malloc(numConcurrentJobs * sizeof (Mutex));
         for (i = 0; i <= numConcurrentJobs; i++) {
@@ -191,7 +224,6 @@ int main(int argc, char const *argv[]) {
             mutexes[i] = m;
         }
         
-        int id = 0;
         
         // Thread pool
         int numThreads = 32;
@@ -209,19 +241,24 @@ int main(int argc, char const *argv[]) {
             if (*clientflag == '1') { // wait untill there is data to read
                 // get job
                 i32 num = *number;
-                printf("recieved: %u set id to %d\n", num, id);
-                *number = id;
-                *clientflag = '0';
+                int id = -1;
+                if ((id = findFreeSlot(slotsInUse)) == -1) {
+                    printf("server is bussy\n"); // Todo: send info to client.
+                } else  {
+                    printf("recieved: %u set id to %d\n", num, id);
+                    slotsInUse[id] = 1;
+                    *number = id;
+                    *clientflag = '0';
 
-                jobQMutex.lock(&jobQMutex);
-                for (i = 0; i < 32; i++) {
-                    Job j = newJob(id, num);
-                    num = rotr32(num, 1);
-                    jobQueue.push(&jobQueue, j);
+                    jobQMutex.lock(&jobQMutex);
+                    for (i = 0; i < 32; i++) {
+                        Job j = newJob(id, num);
+                        num = rotr32(num, 1);
+                        jobQueue.push(&jobQueue, j);
+                    }
+                    jobQMutex.unlock(&jobQMutex);
+                    jobSemaphore.signalX(&jobSemaphore, 32); // signal threads to work
                 }
-                jobQMutex.unlock(&jobQMutex);
-                jobSemaphore.signalX(&jobSemaphore, 32); // signal threads to work
-                id++; // next id
             }
             tsleep(500);
         }

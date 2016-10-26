@@ -99,7 +99,7 @@ void freeSharedMem(int shmid) {
 }
 
 void* getSharedMem(int shmid) {
-    void* p = shmat(shmid, NULL, 0);
+    void* p = shmat(shmid, NULL, SHM_RND);
     if ((int)p == -1) {
         fprintf(stderr, "failed to attach\n");
         perror("shmat");
