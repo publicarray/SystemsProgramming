@@ -260,7 +260,7 @@ int main(int argc, char const *argv[]) {
                     jobSemaphore.signalX(&jobSemaphore, 32); // signal threads to work
                 }
             }
-            tsleep(500);
+            tsleep(100);
         }
         
         return 0;
@@ -319,6 +319,7 @@ int main(int argc, char const *argv[]) {
             int id = *number; // read server reply
             arr[id] = temp; // remember which slots have jobs running;
         }
+        tsleep(2);
 
     }
 

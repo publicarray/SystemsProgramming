@@ -116,13 +116,21 @@ void removeNewLine(char* inStr) {
     }
 }
 
-#include <unistd.h>
-
+#include <time.h>
+// http://cc.byexamples.com/2007/05/25/nanosleep-is-better-than-sleep-and-usleep/
 void tsleep(unsigned int milliseconds)
 {
-    milliseconds *= 1000;
-    usleep((useconds_t)milliseconds);
+    struct timespec time;
+    time.tv_sec = (milliseconds / 1000);
+    time.tv_nsec = (milliseconds - (time.tv_sec * 1000)) * 1000000L;
+
+    while (nanosleep(&time, &time) == -1) {
+        perror("nanosleep:");
+        continue;
+    }
+    return;
 }
+
 //
 // int main(int argc, char const *argv[])
 // {
