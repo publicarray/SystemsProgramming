@@ -168,7 +168,7 @@ int main(int argc, char const *argv[]) {
     *clientflag = '0'; // set intial values
     for (i = 0; i < numConcurrentJobs; i++) {
         serverflag[i] = '0';
-        progress[i] = -1;
+        progress[i] = 'x';
     }
     
     
@@ -271,7 +271,7 @@ int main(int argc, char const *argv[]) {
         
         // read data from slots
         for (i = 0; i < numConcurrentJobs; i++) {
-            if (progress[i] > -1) {
+            if (progress[i] != 'x') {
                 printf("Slot # %d -> %d %%\n", i, progress[i]);
             }
             
@@ -280,7 +280,7 @@ int main(int argc, char const *argv[]) {
                 serverflag[i] = '0';
             } else if (serverflag[i] == '2') { // finished job
                 printf("Slot # %d is done!\n", i);
-                progress[i] = -1;
+                progress[i] = 'x';
                 origninalNumber[i] = -1;
                 serverflag[i] = '0';
             }
