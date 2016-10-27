@@ -6,7 +6,6 @@
 #include <signal.h>
 #include <sys/shm.h>
 #include "Thread.h"
-// #include "SharedMemory.h" // do not use, broken
 #include "Mutex.h"
 #include "ConditionVariable.h"
 #include "Semaphore.h"
@@ -47,13 +46,13 @@ void terminate (int sig) {
     // clean up
     cleanup();
     puts("\nShut-down successfully!");
-     int pid;
-     while ((pid = wait(NULL)) > 0) { // wait for processes to finish
-         printf("Stopping Server: %d!\n", pid);
-         if (pid == -1 && errno != 10) { // 10 = No child processes
-             perror("terminate wait()");
-         }
-     }
+    int pid;
+    while ((pid = wait(NULL)) > 0) { // wait for processes to finish
+        printf("Stopping Server: %d!\n", pid);
+        if (pid == -1 && errno != 10) { // 10 = No child processes
+            perror("terminate wait()");
+        }
+    }
     exit(0);
 }
 
@@ -66,108 +65,74 @@ int findFreeSlot(int *slotsInUse) {
     return -1; // all slots are in use
 }
 
-void * worker (void * data) {
-    puts("thread started ...");
+void writeToSlot(int slotNum, i32 value) {
+    while(1) {
+        mutexes[slotNum].lock(&mutexes[slotNum]);
+        if (serverflag[slotNum] == '0') {
+            slot[slotNum] = value;
+            serverflag[slotNum] = '1';
+            mutexes[slotNum].unlock(&mutexes[slotNum]);
+            break;
+        } else {
+            mutexes[slotNum].unlock(&mutexes[slotNum]);
+            tsleep(10);
+        }
+    }
+}
+
+int progressArr [numConcurrentJobs * 32 * sizeof(int)];
+
+void * worker (void * threadId) {
+    int id = (int) threadId;
+    printf("thread #%d started ...\n", id);
     while (1) {
         int hasJob = 0;
         Job j;
-
+        
         jobSemaphore.wait(&jobSemaphore); // wait for job
-        printf("Woken up\n");
+        printf("Thread # %d Woken up\n", id);
         // we might be woken up at any time
         jobQMutex.lock(&jobQMutex);
         if (!jobQueue.isEmpty(&jobQueue)) {
-            printf("Getting job..\n");
+            printf("Thread # %d Getting job..\n", id);
             hasJob = 1;
             j = jobQueue.pop(&jobQueue);
         }
         jobQMutex.unlock(&jobQMutex);
-
+        
         // do job
         if (hasJob) {
-            printf("Working job #%d\n", j.id);
+            printf("Working job # %d\n", j.id);
             // Factorise()
             for (i32 i = 2; i*i <= j.data; i++) {
                 if (j.data % i == 0) {
-                    printf("found factor: %u\n", i);
-//                    j.output = i;
-//                    while (serverflag[j.id] != '0'){tsleep(50);} // wait until slot is free
-                    while(1) {
-                        mutexes[j.id].lock(&mutexes[j.id]);
-                        if (serverflag[j.id] == '0') {
-                            slot[j.id] = i;
-                            serverflag[j.id] = '1';
-                            mutexes[j.id].unlock(&mutexes[j.id]);
-                            break;
-                        } else {
-//                            printf("serverflag #%d -> %c\n", j.id, serverflag[j.id]);
-                            mutexes[j.id].unlock(&mutexes[j.id]);
-                            tsleep(10);
-                        }
-                    }
-                    
-                    // the result of (n/i) i.e the other factor
-                    while(1) {
-                        mutexes[j.id].lock(&mutexes[j.id]);
-                        if (serverflag[j.id] == '0') {
-                            slot[j.id] = j.data/i;
-                            serverflag[j.id] = '1';
-                            mutexes[j.id].unlock(&mutexes[j.id]);
-                            break;
-                        } else {
-//                            printf("serverflag #%d -> %c\n", j.id, serverflag[j.id]);
-                            mutexes[j.id].unlock(&mutexes[j.id]);
-                            tsleep(10);
-                        }
-                    }
-                    
-                    j.progress = (i*i)/j.data;
-                    
-//                    doneQMutex.lock(&doneQMutex);
-//                    doneQueue.push(&doneQueue, &j);
-//                    doneQMutex.unlock(&doneQMutex);
-//                    doneSemaphore.signal(&doneSemaphore);
-//                    slot.print(&slot);
-                    // while (!serverflag.getNumP(&serverflag)[j.id]); // bissy waiting
-                    // slot.data = i; // == ((i32*)slot.data)[j.id] = i;
-                    // slot.getNumP(&slot)[j.id] = i; // == ((i32*)slot.data)[j.id] = i;
-//                    slot.print(&slot);
-
-//                    printf("factor: %d\n", i);
-
-                    // serverflag.getNumP(&serverflag)[j.id] = 1;
-
-                    // i = smallest factor found
-                    // signal facto found, update shared vars
-                    // wait for client to read.
-                    // return i; // n/i = result
+//                    printf("found factor: %u\n", i);
+                    writeToSlot(j.id, i); // factor
+                    writeToSlot(j.id, j.data/i); // the result of (n/i) i.e the other factor
                 }
+                progressArr[j.id + id] = (100 * i*i) / j.data; // update progress Array
+                printf("progress: %d \n", progressArr[j.id + id]);
             }
             
             
             
             // tel the clint that we are done
-//            while(1) {
-//                mutexes[j.id].lock(&mutexes[j.id]);
-//                if (serverflag[j.id] == '0') {
-//                    serverflag[j.id] = '2'; // 2 = done
-//                    mutexes[j.id].unlock(&mutexes[j.id]);
-//                    break;
-//                } else {
-//                    mutexes[j.id].unlock(&mutexes[j.id]);
-//                    tsleep(10);
-//                }
-//            }
+            //            while(1) {
+            //                mutexes[j.id].lock(&mutexes[j.id]);
+            //                if (serverflag[j.id] == '0') {
+            //                    serverflag[j.id] = '2'; // 2 = done
+            //                    mutexes[j.id].unlock(&mutexes[j.id]);
+            //                    break;
+            //                } else {
+            //                    mutexes[j.id].unlock(&mutexes[j.id]);
+            //                    tsleep(10);
+            //                }
+            //            }
             
             
-            printf("Thread is DONE: \n");
+            printf("Thread # %d is DONE: \n", id);
             hasJob = 0;
             j.done = 1;
-            
-//            doneQMutex.lock(&doneQMutex);
-//            doneQueue.push(&doneQueue, &j);
-//            doneQMutex.unlock(&doneQMutex);
-//            doneSemaphore.signal(&doneSemaphore);
         }
     }
     return 0;
@@ -197,8 +162,8 @@ int main(int argc, char const *argv[]) {
     for (i = 0; i < 10; i++) {
         serverflag[i] = '0';
     }
-
-
+    
+    
     
     int pid = fork();
     if (pid == -1) {
@@ -209,7 +174,7 @@ int main(int argc, char const *argv[]) {
         printf("child started\n");
         // child process ("the server")
         sharedMem = getSharedMem(shmid);
-
+        
         clientflag = sharedMem;
         serverflag = sharedMem + 1;
         number = sharedMem + 1 + 10;
@@ -227,19 +192,19 @@ int main(int argc, char const *argv[]) {
         
         // Thread pool
         int numThreads = 32;
-
+        
         if (argv[1]) {
             numThreads = atoi(argv[1]);
         }
         
         for (i = 0; i < numThreads; ++i) {
             Thread t = newThread();
-            t.startDetached(&t, worker, 0);
+            t.startDetached(&t, worker, i);
         }
-
+        
         while (1) {
             if (*clientflag == '1') { // wait untill there is data to read
-                // get job
+                                      // get job
                 i32 num = *number;
                 int id = -1;
                 if ((id = findFreeSlot(slotsInUse)) == -1) {
@@ -249,7 +214,7 @@ int main(int argc, char const *argv[]) {
                     slotsInUse[id] = 1;
                     *number = id;
                     *clientflag = '0';
-
+                    
                     jobQMutex.lock(&jobQMutex);
                     for (i = 0; i < 32; i++) {
                         Job j = newJob(id, num);
@@ -267,50 +232,46 @@ int main(int argc, char const *argv[]) {
     }
     printf("parent continues execution, child process has a pid of %d \n", pid);
     // parent process ("the client")
-
+    
     int bufferSize = 10000;
     char userBuffer[bufferSize];
     int arr[numConcurrentJobs];
-//    while(1) {
-//        mutexes[j.id]->lock(mutexes[j.id]);
-//        if (serverflag[j.id] != '0') {
-//            slot[j.id] = i;
-//            serverflag[j.id] = '1';
-//        } else {
-//            puts("serverflag is == '1', sleeping");
-//            tsleep(50);
-//        }
-//        mutexes[j.id]->unlock(mutexes[j.id]);
-//    }
+    //    while(1) {
+    //        if (serverflag[j.id] != '0') {
+    //            slot[j.id] = i;
+    //            serverflag[j.id] = '1';
+    //        } else {
+    //            puts("serverflag is == '1', sleeping");
+    //            tsleep(50);
+    //        }
+    //    }
     
     
-     while (1) {
-
-         // read data from slots
-         for (i = 0; i < numConcurrentJobs; i++) {
-//             tsleep(500);
-//             printf("#%d -> %c\n", i, serverflag[i]);
-//             mutexes[i].lock(&mutexes[i]);
-             if (serverflag[i] == '1') {
-                 printf("Slot: %d, Number: %u, Factor: %u \n", i, arr[i], slot[i]);
-                 serverflag[i] = '0';
-             }
-//             mutexes[i].unlock(&mutexes[i]);
-         }
-         
-         // read data from user
-         if (canRead(STDIN_FILENO, 0, 100)) { // if user typed something
-             fgets(userBuffer, sizeof userBuffer, stdin);
-             removeNewLine(userBuffer);
-             if (strcmp(userBuffer, "q") == 0 || strcmp(userBuffer, "quit") == 0 || strcmp(userBuffer, "exit") == 0) {
-                 puts("\nWaiting for threads to quit...");
-                 kill(pid, SIGKILL);
-                 //wait(NULL); // wait for child. TODO: actually tell child we are quitting
-                 cleanup();
-                 puts("\n -- See you later!");
-                 break; // exit loop
-             }
-//             if () // all slots are in use, tell user we are busy
+    while (1) {
+        
+        // read data from slots
+        for (i = 0; i < numConcurrentJobs; i++) {
+            if (serverflag[i] == '1') { // data to read
+                printf("Slot: %d, Number: %u, Factor: %u \n", i, arr[i], slot[i]);
+                serverflag[i] = '0';
+            } else if (serverflag[i] == '2') { // finished job
+                arr[i] = 0;
+            }
+        }
+        
+        // read data from user
+        if (canRead(STDIN_FILENO, 0, 100)) { // if user typed something
+            fgets(userBuffer, sizeof userBuffer, stdin);
+            removeNewLine(userBuffer);
+            if (strcmp(userBuffer, "q") == 0 || strcmp(userBuffer, "quit") == 0 || strcmp(userBuffer, "exit") == 0) {
+                puts("\nWaiting for threads to quit...");
+                kill(pid, SIGKILL);
+                //wait(NULL); // wait for child. TODO: actually tell child we are quitting
+                cleanup();
+                puts("\n -- See you later!");
+                break; // exit loop
+            }
+            //             if () // all slots are in use, tell user we are busy
             // send data to server
             while(*clientflag != '0'){tsleep(50);} // wait until allowed to write
             i32 temp = *number = atoi(userBuffer); // pass to server
@@ -320,9 +281,9 @@ int main(int argc, char const *argv[]) {
             arr[id] = temp; // remember which slots have jobs running;
         }
         tsleep(2);
-
+        
     }
-
+    
     wait(NULL); // wait for child to exit
     cleanup();
     return 0;
