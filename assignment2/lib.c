@@ -125,7 +125,7 @@ void tsleep(unsigned int milliseconds)
     time.tv_nsec = (milliseconds - (time.tv_sec * 1000)) * 1000000L;
 
     while (nanosleep(&time, &time) == -1) {
-        perror("nanosleep:");
+        perror("nanosleep");
         continue;
     }
     return;

@@ -15,6 +15,7 @@
 #include "lib.h"
 
 #define numConcurrentJobs 10
+#define numBitShifts 32
 
 Semaphore jobSemaphore, doneSemaphore;
 Mutex jobQMutex, clientflagMutex, numberMutex;
@@ -80,7 +81,28 @@ void writeToSlot(int slotNum, i32 value) {
     }
 }
 
-int progressArr [numConcurrentJobs * 32 * sizeof(int)];
+int progressArr[numConcurrentJobs][numBitShifts] = {{-1}}; // TODO: number of threads not numBitShifts
+
+int getProgress(int slot) {
+    if (slot > numConcurrentJobs) {
+        printf("getProgress() slot number to high! %d", slot);
+        return -1;
+    }
+    int slotProgress = 0;
+    int workingTheads = 0;
+    for (int i = 0; i < numBitShifts; i++) {
+        if (progressArr[slot][i] != -1) {
+            slotProgress += progressArr[slot][i];
+            workingTheads++;
+        } else if (progressArr[slot][i] == 100) { // reset progress
+            progressArr[slot][i] = -1;
+        }
+    }
+    if (slotProgress == 0 || workingTheads == 0) {
+        return 0;
+    }
+    return slotProgress / workingTheads;
+}
 
 void * worker (void * threadId) {
     int id = (int) threadId;
@@ -108,31 +130,16 @@ void * worker (void * threadId) {
                 if (j.data % i == 0) {
 //                    printf("found factor: %u\n", i);
                     writeToSlot(j.id, i); // factor
+//                    printf("found factor: %u\n", j.data/i);
                     writeToSlot(j.id, j.data/i); // the result of (n/i) i.e the other factor
                 }
-                progressArr[j.id + id] = (100 * i*i) / j.data; // update progress Array
-                printf("progress: %d \n", progressArr[j.id + id]);
+                progressArr[j.id][id] = (100 * i*i) / j.data; // update progress Array
+//                printf("progress: %d \n", progressArr[j.id][id]);
             }
-            
-            
-            
-            // tel the clint that we are done
-            //            while(1) {
-            //                mutexes[j.id].lock(&mutexes[j.id]);
-            //                if (serverflag[j.id] == '0') {
-            //                    serverflag[j.id] = '2'; // 2 = done
-            //                    mutexes[j.id].unlock(&mutexes[j.id]);
-            //                    break;
-            //                } else {
-            //                    mutexes[j.id].unlock(&mutexes[j.id]);
-            //                    tsleep(10);
-            //                }
-            //            }
-            
+            progressArr[j.id][id] = 100; // update progress Array
             
             printf("Thread # %d is DONE: \n", id);
             hasJob = 0;
-            j.done = 1;
         }
     }
     return 0;
@@ -181,7 +188,7 @@ int main(int argc, char const *argv[]) {
         slot = sharedMem + 1 + 10 + sizeof(i32);
         progress = sharedMem + 1 + 10 + sizeof(i32) + sizeof(i32) * 10;
         
-        int slotsInUse[10] = {0};
+        int slotsInUse[numConcurrentJobs] = {0};
         
         mutexes = malloc(numConcurrentJobs * sizeof (Mutex));
         for (i = 0; i <= numConcurrentJobs; i++) {
@@ -203,7 +210,7 @@ int main(int argc, char const *argv[]) {
         }
         
         while (1) {
-            if (*clientflag == '1') { // wait untill there is data to read
+            if (*clientflag == '1') { // wait until there is data to read
                                       // get job
                 i32 num = *number;
                 int id = -1;
@@ -216,15 +223,27 @@ int main(int argc, char const *argv[]) {
                     *clientflag = '0';
                     
                     jobQMutex.lock(&jobQMutex);
-                    for (i = 0; i < 32; i++) {
+                    for (i = 0; i < numBitShifts; i++) {
                         Job j = newJob(id, num);
                         num = rotr32(num, 1);
                         jobQueue.push(&jobQueue, j);
                     }
                     jobQMutex.unlock(&jobQMutex);
-                    jobSemaphore.signalX(&jobSemaphore, 32); // signal threads to work
+                    jobSemaphore.signalX(&jobSemaphore, numBitShifts); // signal threads to work
                 }
             }
+            
+            for (int i = 0; i < numConcurrentJobs; i++) {
+                if (slotsInUse[i] == 1) {
+                    int slotProgress = getProgress(i);
+                    progress[i] = slotProgress; // save to shared memory
+                    printf("Slot # %d -> %d %%\n", i, slotProgress);
+                    if (slotProgress == 100) {
+                        slotsInUse[i] = 0;
+                    }
+                }
+            }
+            
             tsleep(100);
         }
         
@@ -258,6 +277,7 @@ int main(int argc, char const *argv[]) {
                 arr[i] = 0;
             }
         }
+        
         
         // read data from user
         if (canRead(STDIN_FILENO, 0, 100)) { // if user typed something
