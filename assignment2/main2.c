@@ -243,9 +243,9 @@ int main(int argc, char const *argv[]) {
                 i32 num = *number;
                 int id = -1;
                 if ((id = findFreeSlot(slotsInUse)) == -1) {
-                    printf("server is bussy\n"); // Todo: send info to client.
+                    printf("server is busy\n"); // Todo: send info to client.
                 } else  {
-                    printf("recieved: %u set id to %d\n", num, id);
+                    printf("received: %u set id to %d\n", num, id);
                     slotsInUse[id] = 1;
                     *number = id;
                     *clientflag = '0';
@@ -292,7 +292,7 @@ int main(int argc, char const *argv[]) {
 //             printf("#%d -> %c\n", i, serverflag[i]);
 //             mutexes[i].lock(&mutexes[i]);
              if (serverflag[i] == '1') {
-                 printf("Slot: %d, OrigNum: %u, Factor: %u \n", i, arr[i], slot[i]);
+                 printf("Slot: %d, Number: %u, Factor: %u \n", i, arr[i], slot[i]);
                  serverflag[i] = '0';
              }
 //             mutexes[i].unlock(&mutexes[i]);
