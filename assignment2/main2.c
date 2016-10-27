@@ -138,6 +138,7 @@ void * worker (void * threadId) {
         if (hasJob) {
 //            progressArr[j.id][id] = -1; // reset progess
             printf("Working job # %d\n", j.id);
+            progressArr[j.id][id] = 0;
             // Factorise()
             for (i32 i = 2; i*i <= j.data; i++) {
                 if (j.data % i == 0) {
