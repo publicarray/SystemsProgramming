@@ -166,10 +166,10 @@ int main(int argc, char const *argv[]) {
     progress = sharedMem + 1 + 10 + sizeof(i32) + sizeof(i32) * 10;
     
     *clientflag = '0'; // set intial values
-    for (i = 0; i < 10; i++) {
+    for (i = 0; i < numConcurrentJobs; i++) {
         serverflag[i] = '0';
+        progress[i] = -1;
     }
-    
     
     
     int pid = fork();
@@ -237,8 +237,9 @@ int main(int argc, char const *argv[]) {
                 if (slotsInUse[i] == 1) {
                     int slotProgress = getProgress(i);
                     progress[i] = slotProgress; // save to shared memory
-                    printf("Slot # %d -> %d %%\n", i, slotProgress);
+//                    printf("Slot # %d -> %d %%\n", i, slotProgress);
                     if (slotProgress == 100) {
+                        serverflag[i] = '2'; // notefy client that the job is done
                         slotsInUse[i] = 0;
                     }
                 }
@@ -254,7 +255,7 @@ int main(int argc, char const *argv[]) {
     
     int bufferSize = 10000;
     char userBuffer[bufferSize];
-    int arr[numConcurrentJobs];
+    int origninalNumber[numConcurrentJobs] = {-1};
     //    while(1) {
     //        if (serverflag[j.id] != '0') {
     //            slot[j.id] = i;
@@ -270,11 +271,18 @@ int main(int argc, char const *argv[]) {
         
         // read data from slots
         for (i = 0; i < numConcurrentJobs; i++) {
+            if (progress[i] > -1) {
+                printf("Slot # %d -> %d %%\n", i, progress[i]);
+            }
+            
             if (serverflag[i] == '1') { // data to read
-                printf("Slot: %d, Number: %u, Factor: %u \n", i, arr[i], slot[i]);
+                printf("Slot: %d, Number: %u, Factor: %u \n", i, origninalNumber[i], slot[i]);
                 serverflag[i] = '0';
             } else if (serverflag[i] == '2') { // finished job
-                arr[i] = 0;
+                printf("Slot # %d is done!\n", i);
+                progress[i] = -1;
+                origninalNumber[i] = -1;
+                serverflag[i] = '0';
             }
         }
         
@@ -298,7 +306,7 @@ int main(int argc, char const *argv[]) {
             *clientflag = '1';
             while(*clientflag != '0'){tsleep(50);}
             int id = *number; // read server reply
-            arr[id] = temp; // remember which slots have jobs running;
+            origninalNumber[id] = temp; // remember which slots have jobs running;
         }
         tsleep(2);
         
