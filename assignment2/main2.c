@@ -332,6 +332,7 @@ int main(int argc, char const *argv[]) {
         if (canRead(STDIN_FILENO, 0, 100)) { // if user typed something
             fgets(userBuffer, sizeof userBuffer, stdin);
             removeNewLine(userBuffer);
+
             if (strcmp(userBuffer, "q") == 0 || strcmp(userBuffer, "quit") == 0 || strcmp(userBuffer, "exit") == 0) {
                 puts("\nWaiting for threads to quit...");
                 kill(pid, SIGKILL);
@@ -339,6 +340,11 @@ int main(int argc, char const *argv[]) {
                 cleanup();
                 break; // exit loop
             }
+
+            if (isdigitstr(userBuffer) == 0) { // it not a number
+                continue; // ignore empty
+            }
+
             //             if () // all slots are in use, tell user we are busy
             // send data to server
             while(*clientflag != '0'){tsleep(50);} // wait until allowed to write

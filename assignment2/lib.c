@@ -47,6 +47,18 @@ void printNum(i32 num)
 
 }
 
+#include <string.h>
+#include <ctype.h>
+int isdigitstr (char * buffer) {
+    int r = 1;
+    for (int i = 0; i < strlen(buffer); i++) {
+        if (isdigit(buffer[i]) == 0) { // Non-zero value if the character is a numeric character, zero otherwise.
+            r = 0;
+        }
+    }
+    return r;
+}
+
 // Trial Division
 // http://www.connellybarnes.com/documents/factoring.pdf
 // https://en.wikipedia.org/wiki/Trial_division
