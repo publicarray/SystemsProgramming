@@ -118,9 +118,15 @@ void* worker (void* num) {
             for (i32 i = 2; i*i <= j.data; i++) {
                 if (j.data % i == 0) {
                     printf("factor: %d\n", i);
-                    while (!serverflag.getNumP(&serverflag)[j.id]); // bissy waiting
-                    slots.getNumP(&slots)[j.id] = i; // == ((i32*)slots.data)[j.id] = i;
-                    serverflag.getNumP(&serverflag)[j.id] = 1;
+                    slots.print(&slots);
+                    // while (!serverflag.getNumP(&serverflag)[j.id]); // bissy waiting
+                    // slots.data = i; // == ((i32*)slots.data)[j.id] = i;
+                    // slots.getNumP(&slots)[j.id] = i; // == ((i32*)slots.data)[j.id] = i;
+                    slots.print(&slots);
+
+                    printf("factor: %d\n", i);
+
+                    // serverflag.getNumP(&serverflag)[j.id] = 1;
 
                     // i = smallest factor found
                     // signal facto found, update shared vars
@@ -130,7 +136,7 @@ void* worker (void* num) {
             }
 
 
-            j.output = slots.getNumP(&slots)[j.id]; // largest factor atm
+            // j.output = slots.getNumP(&slots)[j.id]; // largest factor atm
             tsleep(200);
             doneQMutex.lock(&doneQMutex);
             doneQueue.push(&doneQueue, &j);
@@ -152,25 +158,67 @@ int main () {
     number = newSharedMemory(sizeof (i32)), clientflag = newSharedMemory(sizeof (i32));
     slots = newSharedMemory(sizeof (i32)*10), serverflag = newSharedMemory(sizeof (i32)*10);
 
-    int numThreads = 4;
-
-    for (int i = 0; i < numThreads; ++i)
-    {
-        Thread t = newThread();
-        t.startDetached(&t, worker, 0);
+    int pid = fork();
+    if (pid == -1) {
+        perror("Error creating a new process/thread.");
+        return 1;
     }
+    if (!pid) {
+        number.update(&number), clientflag.update(&clientflag);
+        slots.update(&slots), serverflag.update(&serverflag);
+    // child process ("the server")
+        int numThreads = 4;
 
-    jobQMutex.lock(&jobQMutex);
-    Job job1; initJob(&job1, 1, 2);
-    Job job2; initJob(&job2, 2, 30);
-    jobQueue.push(&jobQueue, &job1);
-    jobQueue.push(&jobQueue, &job2);
-    printJob(&job1);
-    printJob(&job2);
-    jobSemaphore.signalX(&jobSemaphore, 2); // signal that there is a new job available
-    jobQMutex.unlock(&jobQMutex);
+        // for (int i = 0; i < numThreads; ++i)
+        // {
+        //     Thread t = newThread();
+        //     t.startDetached(&t, worker, 0);
+        // }
 
+        jobQMutex.lock(&jobQMutex);
+        number.data = (void*)8;
+        printf("number %d\n", (i32)number.data);
+        slots.data = (void*)82;
+        void *p = slots.data + (sizeof (i32));
+        p = (void*) 86;
+        printf("slots %d\n", (i32)slots.data);
+        printf("slots %d\n", (i32)(slots.data + (sizeof (i32))));
 
+        // uint32_t x = 77;
+
+        number.set(&number, 14, 0);
+        printf("getnum: %d\n", number.get(&number, 0));
+
+        slots.set(&slots, 6532, 1);
+        printf("getnum: %d\n", slots.get(&slots, 1));
+
+        // number.data = (void*)1009;
+
+        // number.set(&number, 10, 0);
+        printf("number %d\n", (i32)number.data);
+        // slots.data = (void*)82;
+        void *p2 = slots.data + (sizeof (i32))*6;
+        p2 = (void*) 0;
+        // printf("slots %d\n", (i32)slots.data);
+        printf("slots %d\n", (i32)(slots.data + sizeof(i32)*6));
+        // printf("slots %d\n", (int)slots.data+1);
+        // perror("sdfaf");
+        // number.print(&number);
+        // number.getNumP(&number) = 88;
+        // printf("%d\n", *(int*)number.data);
+
+        // number.print(&number);
+        Job job1; initJob(&job1, 1, 2);
+        Job job2; initJob(&job2, 2, 30);
+        jobQueue.push(&jobQueue, &job1);
+        jobQueue.push(&jobQueue, &job2);
+        printJob(&job1);
+        printJob(&job2);
+        jobSemaphore.signalX(&jobSemaphore, 2); // signal that there is a new job available
+        jobQMutex.unlock(&jobQMutex);
+
+    }
+    // parent process ("the client")
     while(1) // wait for jobs to complete
     {
         Job j;
@@ -183,7 +231,7 @@ int main () {
         doneQMutex.unlock(&doneQMutex);
         if (hasJobs)
         {
-            printf("slot #%d = %d\n", j.id, slots.getNumP(&slots)[j.id]);
+            // printf("slot #%d = %d\n", j.id, slots.getNumP(&slots)[j.id]);
             printJob(&j);
         }
     }

@@ -129,7 +129,7 @@ void progresDisplay(int progress) {
 
 void * worker (void * threadId) {
     int id = (int) threadId;
-    printf("thread #%d started ...\n", id);
+    printf("Thread #%d started.\n", id);
     while (1) {
         int hasJob = 0;
         Job j;
@@ -172,8 +172,8 @@ void * worker (void * threadId) {
 }
 
 int main(int argc, char const *argv[]) {
-    signal(SIGINT, terminate); // cleanup [Control + C]
-    signal(SIGQUIT, terminate); // cleanup
+    signal(SIGINT, terminate); // clean-up [Control + C]
+    signal(SIGQUIT, terminate); // clean-up
     int i;
     jobSemaphore = newSemaphore(0);
     doneSemaphore = newSemaphore(0);
@@ -192,7 +192,7 @@ int main(int argc, char const *argv[]) {
     slot = sharedMem + 1 + 10 + sizeof(i32);
     progress = sharedMem + 1 + 10 + sizeof(i32) + sizeof(i32) * 10;
 
-    *clientflag = '0'; // set intial values
+    *clientflag = '0'; // set initial values
     for (i = 0; i < numConcurrentJobs; i++) {
         serverflag[i] = '0';
         progress[i] = 'x';
@@ -205,7 +205,7 @@ int main(int argc, char const *argv[]) {
         exit(-1);
     }
     if (pid == 0) {
-        printf("child started\n");
+        printf("Child process initialised\n");
         // child process ("the server")
         sharedMem = getSharedMem(shmid);
 
@@ -242,6 +242,7 @@ int main(int argc, char const *argv[]) {
             resetProgress(i);
         }
 
+        puts("Enter number to factor: ");
         while (1) {
             if (*clientflag == '1') { // wait until there is data to read
                                       // get job
@@ -280,56 +281,58 @@ int main(int argc, char const *argv[]) {
                 }
             }
 
-            tsleep(100);
+            // tsleep(100);
         }
 
         return 0;
     }
-    printf("parent continues execution, child process has a pid of %d \n", pid);
+    printf("Child process has a pid of %d \n", pid);
     // parent process ("the client")
 
     int bufferSize = 10000;
     char userBuffer[bufferSize];
     int origninalNumber[numConcurrentJobs] = {-1};
     int outstandingJobs = 0;
-    // int
+    struct timespec startTime = getTime();
 
     while (1) {
-
-        for (int i = 0; i < 10 + 15*outstandingJobs; i++) {
-            printf("\b");
-        }
-        if (outstandingJobs > 0) {
-
-            printf("Progress: ");
-            for (i = 0; i < numConcurrentJobs; i++) {
-                if (progress[i] != 'x') {
-                    printf("%*d:%*d%% ", 2, i, 3, progress[i]);
+        if (getTimeLapsed(startTime) >= 0.5f) { // 0.5s = 500 milliseconds
+            if (outstandingJobs > 0) {
+                for (int i = 0; i < 10 + 15*outstandingJobs; i++) {
+                    printf("\b");
                 }
+                printf("Progress: ");
+                for (i = 0; i < numConcurrentJobs; i++) {
+                    if (progress[i] != 'x') {
+                        printf("%*d:%*d%% ", 2, i, 3, progress[i]);
+                    }
+                }
+                fflush(0);
+                // progresDisplay(progress[0]);
             }
-            fflush(0);
-            // printf("\n");
-            // progresDisplay(progress[0]);
         }
 
         // read data from slots
         for (i = 0; i < numConcurrentJobs; i++) {
 
             if (serverflag[i] == '1') { // data to read
-                // printf("Slot: %d, Number: %u, Factor: %u \n", i, origninalNumber[i], slot[i]);
+                printf("Slot: %d, Number: %u, Factor: %u \n", i, origninalNumber[i], slot[i]);
                 serverflag[i] = '0';
+                startTime = getTime();
             } else if (serverflag[i] == '2') { // finished job
-                printf("\nSlot # %d is done processing %d\n", i, origninalNumber[i]);
+                printf("Slot # %d is done processing %d\n", i, origninalNumber[i]);
                 progress[i] = 'x';
                 origninalNumber[i] = -1;
                 serverflag[i] = '0';
                 outstandingJobs--;
+                startTime = getTime();
             }
         }
 
 
         // read data from user
-        if (canRead(STDIN_FILENO, 0, 100)) { // if user typed something
+        if (canRead(STDIN_FILENO, 0, 10000)) { // if user typed something
+            startTime = getTime();
             fgets(userBuffer, sizeof userBuffer, stdin);
             removeNewLine(userBuffer);
 
@@ -342,7 +345,7 @@ int main(int argc, char const *argv[]) {
             }
 
             if (isdigitstr(userBuffer) == 0) { // it not a number
-                continue; // ignore empty
+                continue; // ignore non number characters
             }
 
             //             if () // all slots are in use, tell user we are busy
