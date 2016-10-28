@@ -9,7 +9,6 @@
 #include "Mutex.h"
 #include "ConditionVariable.h"
 #include "Semaphore.h"
-//#include "Queue.h"
 #include "JobQueue.h"
 #include "Job.h"
 #include "lib.h"
@@ -86,7 +85,7 @@ void writeToSlot(int slotNum, i32 value) {
 
 void resetProgress(int slot) {
     // reset progressArray
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < numThreads; i++) {
         progressArr[slot][i] = -1;
     }
 }
@@ -103,10 +102,10 @@ int getProgress(int slot) {
         progressMutex.lock(&progressMutex);
         temp = progressArr[slot][i]; // only access the variable once
         progressMutex.unlock(&progressMutex);
-        if (temp > -1) {
+        // if (temp > -1) {
             slotProgress += temp;
             workingTheads++;
-        }
+        // }
     }
 
     if (slotProgress == 0 || workingTheads == 0) {
@@ -159,7 +158,7 @@ void * worker (void * threadId) {
                 }
                 progressArr[j.id][id] = (100 * i*i) / j.data; // update progress Array
 //                printf("progress: %d \n", progressArr[j.id][id]);
-               tsleep(300);
+               // tsleep(100); // slowdown the thread
             }
             progressMutex.lock(&progressMutex);
             progressArr[j.id][id] = 100; // update progress Array
@@ -223,7 +222,6 @@ int main(int argc, char const *argv[]) {
             mutexes[i] = m;
         }
 
-
         // Thread pool
         numThreads = numOfThreads;
 
@@ -280,8 +278,6 @@ int main(int argc, char const *argv[]) {
                     }
                 }
             }
-
-            // tsleep(100);
         }
 
         return 0;
@@ -294,26 +290,24 @@ int main(int argc, char const *argv[]) {
     int origninalNumber[numConcurrentJobs] = {-1};
     int outstandingJobs = 0;
     struct timespec startTime = getTime();
+    float duration;
 
     while (1) {
-        if (getTimeLapsed(startTime) >= 0.5f) { // 0.5s = 500 milliseconds
-            if (outstandingJobs > 0) {
-                for (int i = 0; i < 10 + 15*outstandingJobs; i++) {
-                    printf("\b");
-                }
-                printf("Progress: ");
-                for (i = 0; i < numConcurrentJobs; i++) {
-                    if (progress[i] != 'x') {
-                        printf("%*d:%*d%% ", 2, i, 3, progress[i]);
-                    }
-                }
-                fflush(0);
-                // progresDisplay(progress[0]);
+        duration = getTimeLapsed(startTime);
+        if (outstandingJobs > 0 && duration >= 0.5f) { // 0.5s = 500 milliseconds
+            for (int i = 0; i < 10 + 15*outstandingJobs; i++) {
+                printf("\b");
             }
+            printf("Progress: ");
+                // progresDisplay(progress[0]);
         }
 
         // read data from slots
         for (i = 0; i < numConcurrentJobs; i++) {
+
+            if (outstandingJobs > 0 && duration >= 0.5f && progress[i] != 'x') {
+                printf("%*d:%*d%% ", 2, i, 3, progress[i]);
+            }
 
             if (serverflag[i] == '1') { // data to read
                 printf("Slot: %d, Number: %u, Factor: %u \n", i, origninalNumber[i], slot[i]);
@@ -328,10 +322,10 @@ int main(int argc, char const *argv[]) {
                 startTime = getTime();
             }
         }
-
+        fflush(0);
 
         // read data from user
-        if (canRead(STDIN_FILENO, 0, 10000)) { // if user typed something
+        if (canRead(STDIN_FILENO, 0, 100)) { // if user typed something
             startTime = getTime();
             fgets(userBuffer, sizeof userBuffer, stdin);
             removeNewLine(userBuffer);
@@ -348,13 +342,12 @@ int main(int argc, char const *argv[]) {
                 continue; // ignore non number characters
             }
 
-            //             if () // all slots are in use, tell user we are busy
             // send data to server
             while(*clientflag != '0'){tsleep(50);} // wait until allowed to write
             i32 temp = *number = atoi(userBuffer); // pass to server
             *clientflag = '1';
             while(*clientflag == '1'){tsleep(50);} // wait until the server has read the data
-            if (*clientflag == '2') {
+            if (*clientflag == '2') { // all slots are in use, tell user we are busy
                 puts("\nServer is busy!");
                 *clientflag = '0';
             } else {
