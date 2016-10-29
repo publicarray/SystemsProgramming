@@ -1,396 +1,428 @@
-// single threaded
-// non-blocking
-// query the user for 32 bit integers to be processed and will pass each request to the server to process,
-// and will immediately request the user for more input numbers or ‘q’ to quit.
-
-// The client and server will communicate using shared memory.
-// The client will write data for the server to a shared 32 bit variable called ‘number’.
-// The server will write data for the client to a shared array of 32 bit variables called a ‘slot’
-// that is 10 elements long. Each element in the array (slot) will correspond to an individual client
-// query so only a maximum of 10 queries can be outstanding at any time. This means that any subsequent
-// queries will be blocked until one of the 10 outstanding queries completes, at which times its slot can
-// be reused by the server for its response to the new query.
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-// #include <sys/ipc.h>
-// #include <sys/shm.h>
-// #include <sys/types.h>
+#include <errno.h>
+#include <signal.h>
+#include <sys/shm.h>
 #include "Thread.h"
-#include "SharedMemory.h"
 #include "Mutex.h"
 #include "ConditionVariable.h"
 #include "Semaphore.h"
-#include "Queue.h"
+#include "JobQueue.h"
+#include "Job.h"
 #include "lib.h"
-// #include "../../01StringAndList/String.h"
 
-// #define BUFFERLEN 200
-// #define SHARED_MEM_SIZE 1024 // 1k
-
-// void* func(void* num) {
-//     // int temp = rotr32( *(i32*)args, 1);
-//     // int temp = (*(int *)args)++;
-//     // i32 temp =  *(i32*) args;
-//     // *(int32_t *)args += 1;
-//     // *(i32*) args = temp;
-//     printf("thread got: %d\n", *(i32*) num);
-//     return (void*) factorise(*(i32*) num);
-//     // return NULL;
-
-// }
+#define numConcurrentJobs 10
+#define numBitShifts 32
+#define numOfThreads 32
+#define slowThread 0.1f
 
 Semaphore jobSemaphore, doneSemaphore;
-Mutex jobQMutex, doneQMutex;
-Queue jobQueue, doneQueue;
-SharedMemory number, clientflag, slots, serverflag;
-// shared vars
-// i32 number;
-// int clientflag = 0;
-// i32 slots[10] = {0,0,0,0,0,0,0,0,0,0};
-// int serverflag[10] = {0,0,0,0,0,0,0,0,0,0};
+Mutex jobQMutex, clientflagMutex, numberMutex, progressMutex;
+JobQueue jobQueue, doneQueue;
+int shmid, numThreads;
+void * sharedMem = NULL;
+int isClean = 0;
+char *clientflag = NULL, *serverflag = NULL, *progress = NULL;
+i32 *number = NULL, *slot = NULL;
+Mutex *mutexes = NULL;
+int *progressArr[numConcurrentJobs];
+int testMode = 0;
 
-typedef struct {
-    int id;
-    int data;
-    int output;
-} Job;
-
-void initJob(Job *self, int id, int data) {
-    self->id = id;
-    self->data = data;
-    self->output = 0;
+void cleanup() {
+    if (isClean == 0) {
+        puts("\nCleaning up ...");
+        jobQueue.destroy(&jobQueue);
+        doneQueue.destroy(&doneQueue);
+        jobQMutex.free(&jobQMutex);
+        clientflagMutex.free(&clientflagMutex);
+        numberMutex.free(&numberMutex);
+        jobSemaphore.free(&jobSemaphore);
+        doneSemaphore.free(&doneSemaphore);
+        freeSharedMem(shmid);
+        free(mutexes);
+        for (int i = 0; i < numConcurrentJobs; i++) {
+            free(progressArr[i]);
+        }
+        isClean = 1;
+        puts("\n -- See you later!");
+    }
 }
-
-void printJob(Job *self) {
-    printf("job #%d, data:%d, output:%d\n", self->id, self->data, self->output);
-}
-
-
 
 void terminate (int sig) {
-    // clean up
-    jobQueue.destroy(&jobQueue);
-    doneQueue.destroy(&doneQueue);
-    jobQMutex.free(&jobQMutex);
-    doneQMutex.free(&doneQMutex);
-    jobSemaphore.free(&jobSemaphore);
-    doneSemaphore.free(&doneSemaphore);
-    number.free(&number);
-    clientflag.free(&clientflag);
-    slots.free(&slots);
-    serverflag.free(&serverflag);
-    puts("\nShut-down successfully!");
-    // int pid;
-    // while ((pid = wait(NULL)) > 0) { // wait for processes to finish
-    //     printf("Stopping Server: %d!\n", pid);
-    //     if (pid == -1 && errno != 10) { // 10 = No child processes
-    //         perror("terminate wait()");
-    //     }
-    // }
+    int pid;
+    while ((pid = wait(NULL)) > 0) { // wait for processes to finish
+        printf("Stopping child process: %d!\n", pid);
+        if (pid == -1 && errno != 10) { // 10 = No child processes
+            perror("terminate wait()");
+        }
+    }
+    cleanup();
     exit(0);
 }
 
-void* worker (void* num) {
+int findFreeSlot(int *slotsInUse) {
+    for (int i = 0; i < numConcurrentJobs; i++) {
+        if (slotsInUse[i] == 0) {
+            return i;
+        }
+    }
+    return -1; // all slots are in use
+}
+
+void writeToSlot(int slotNum, i32 value) {
+    while(1) {
+        mutexes[slotNum].lock(&mutexes[slotNum]);
+        if (serverflag[slotNum] == '0') { // Xcode -> Data race condition (doesn't like arrays)
+            slot[slotNum] = value;
+            serverflag[slotNum] = '1';
+            mutexes[slotNum].unlock(&mutexes[slotNum]);
+            break;
+        }
+        mutexes[slotNum].unlock(&mutexes[slotNum]);
+        tsleep(10);
+    }
+}
+
+void resetProgress(int slot) {
+    // reset progressArray
+    for (int i = 0; i < numThreads; i++) {
+        progressArr[slot][i] = -1;
+    }
+}
+
+int getProgress(int slot) {
+    if (slot > numConcurrentJobs) {
+        printf("getProgress() slot number too high! %d", slot);
+        return -1;
+    }
+    int slotProgress = 0;
+    int workingTheads = 0;
+    int temp;
+    for (int i = 0; i < numThreads; i++) {
+        progressMutex.lock(&progressMutex);
+        temp = progressArr[slot][i]; // only access the variable once
+        progressMutex.unlock(&progressMutex);
+        if (temp > -1) {
+            slotProgress += temp;
+            workingTheads++;
+        }
+    }
+
+    if (slotProgress == 0 || workingTheads == 0) {
+        return 0;
+    }
+    return slotProgress / workingTheads;
+}
+
+void progresDisplay(int progress) {
+    int i;
+
+    for (i = 0; i < progress; i++) {
+        printf("#");
+    }
+    for (i = 0; i < progress; i++) {
+        printf("\b");
+    }
+    fflush(0);
+}
+
+void * worker (void * threadId) {
+    int id = (int) threadId;
+    printf("Thread #%d started.\n", id);
     while (1) {
-        //get a job
         int hasJob = 0;
         Job j;
-
+        // printf("Thread # %d sleeping\n", id);
         jobSemaphore.wait(&jobSemaphore); // wait for job
-        printf("Woken up\n");
+        // printf("Thread # %d Woken up\n", id);
         // we might be woken up at any time
         jobQMutex.lock(&jobQMutex);
         if (!jobQueue.isEmpty(&jobQueue)) {
-            printf("Getting job..\n");
+            // printf("Thread # %d Getting job..\n", id);
             hasJob = 1;
-            j = *(Job*) jobQueue.pop(&jobQueue);
+            j = jobQueue.pop(&jobQueue);
         }
         jobQMutex.unlock(&jobQMutex);
 
         // do job
         if (hasJob) {
-            printf("Working job #%d\n", j.id);
+            // printf("Working job # %d\n", j.slot);
+            progressArr[j.slot][id] = 0;
 
-            // Factorise()
-            for (i32 i = 2; i*i <= j.data; i++) {
-                if (j.data % i == 0) {
-                    printf("factor: %d\n", i);
-                    slots.print(&slots);
-                    // while (!serverflag.getNumP(&serverflag)[j.id]); // bissy waiting
-                    // slots.data = i; // == ((i32*)slots.data)[j.id] = i;
-                    // slots.getNumP(&slots)[j.id] = i; // == ((i32*)slots.data)[j.id] = i;
-                    slots.print(&slots);
+            if (testMode) {
+                for (int i = 0; i < 10; ++i) { // output ten numbers
+                    // printf("thread:%d set:%d slot:%d result:%d\n", id, j.data, j.slot, (id * 10) + i);
+                    writeToSlot(j.slot, (id * 10) + i);
+                }
+            } else {
+                // Factorise()
+                for (i32 i = 2; i*i <= j.data; i++) {
+                     // Cripple threads so that the progress bar shows
+                    if (slowThread > 0.0f) {
+                        tsleep(slowThread); // slowdown the thread
+                    }
 
-                    printf("factor: %d\n", i);
-
-                    // serverflag.getNumP(&serverflag)[j.id] = 1;
-
-                    // i = smallest factor found
-                    // signal facto found, update shared vars
-                    // wait for client to read.
-                    // return i; // n/i = result
+                    if (j.data % i == 0) {
+                       // printf("found factor: %u\n", i);
+                        writeToSlot(j.slot, i); // factor
+    //                    printf("found factor: %u\n", j.data/i);
+                        writeToSlot(j.slot, j.data/i); // the result of (n/i) i.e the other factor
+                    }
+                    progressMutex.lock(&progressMutex);
+                    progressArr[j.slot][id] = (100 * i*i) / j.data; // update progress Array
+                    progressMutex.unlock(&progressMutex);
+    //                printf("progress: %d \n", progressArr[j.slot][id]);
                 }
             }
 
-
-            // j.output = slots.getNumP(&slots)[j.id]; // largest factor atm
-            tsleep(200);
-            doneQMutex.lock(&doneQMutex);
-            doneQueue.push(&doneQueue, &j);
-            doneQMutex.unlock(&doneQMutex);
+            progressMutex.lock(&progressMutex);
+            progressArr[j.slot][id] = 100; // update progress Array
+            progressMutex.unlock(&progressMutex);
+            // printf("Thread # %d is DONE: \n", id);
+            hasJob = 0;
         }
     }
     return 0;
 }
 
-int main () {
-    signal(SIGINT, terminate); // cleanup [Control + C]
-    signal(SIGQUIT, terminate); // cleanup
+int main(int argc, char const *argv[]) {
+    signal(SIGINT, terminate); // clean-up [Control + C]
+    signal(SIGQUIT, terminate); // clean-up
+    int i;
     jobSemaphore = newSemaphore(0);
     doneSemaphore = newSemaphore(0);
     jobQMutex = newMutex();
-    doneQMutex = newMutex();
-    jobQueue = newQueue();
-    doneQueue = newQueue();
-    number = newSharedMemory(sizeof (i32)), clientflag = newSharedMemory(sizeof (i32));
-    slots = newSharedMemory(sizeof (i32)*10), serverflag = newSharedMemory(sizeof (i32)*10);
+    clientflagMutex = newMutex();
+    progressMutex = newMutex();
+    numberMutex = newMutex();
+    jobQueue = newJobQueue();
+    doneQueue = newJobQueue();
+    shmid = newSharedMem(1 + 10 + sizeof(i32) + (sizeof(i32)*10) + 10);
+    sharedMem = getSharedMem(shmid);
+
+    clientflag = sharedMem;
+    serverflag = sharedMem + 1;
+    number = sharedMem + 1 + 10;
+    slot = sharedMem + 1 + 10 + sizeof(i32);
+    progress = sharedMem + 1 + 10 + sizeof(i32) + sizeof(i32) * 10;
+
+    *clientflag = '0'; // set initial values
+    for (i = 0; i < numConcurrentJobs; i++) {
+        serverflag[i] = '0';
+        progress[i] = 'x';
+    }
+
 
     int pid = fork();
     if (pid == -1) {
-        perror("Error creating a new process/thread.");
-        return 1;
+        perror("Error forking a new process.");
+        exit(-1);
     }
-    if (!pid) {
-        number.update(&number), clientflag.update(&clientflag);
-        slots.update(&slots), serverflag.update(&serverflag);
-    // child process ("the server")
-        int numThreads = 4;
+    if (pid == 0) {
+        printf("Child process initialised\n");
+        // child process ("the server")
+        sharedMem = getSharedMem(shmid);
 
-        // for (int i = 0; i < numThreads; ++i)
-        // {
-        //     Thread t = newThread();
-        //     t.startDetached(&t, worker, 0);
-        // }
+        clientflag = sharedMem;
+        serverflag = sharedMem + 1;
+        number = sharedMem + 1 + 10;
+        slot = sharedMem + 1 + 10 + sizeof(i32);
+        progress = sharedMem + 1 + 10 + sizeof(i32) + sizeof(i32) * 10;
 
-        jobQMutex.lock(&jobQMutex);
-        number.data = (void*)8;
-        printf("number %d\n", (i32)number.data);
-        slots.data = (void*)82;
-        void *p = slots.data + (sizeof (i32));
-        p = (void*) 86;
-        printf("slots %d\n", (i32)slots.data);
-        printf("slots %d\n", (i32)(slots.data + (sizeof (i32))));
+        int slotsInUse[numConcurrentJobs] = {0};
 
-        // uint32_t x = 77;
-
-        number.set(&number, 14, 0);
-        printf("getnum: %d\n", number.get(&number, 0));
-
-        slots.set(&slots, 6532, 1);
-        printf("getnum: %d\n", slots.get(&slots, 1));
-
-        // number.data = (void*)1009;
-
-        // number.set(&number, 10, 0);
-        printf("number %d\n", (i32)number.data);
-        // slots.data = (void*)82;
-        void *p2 = slots.data + (sizeof (i32))*6;
-        p2 = (void*) 0;
-        // printf("slots %d\n", (i32)slots.data);
-        printf("slots %d\n", (i32)(slots.data + sizeof(i32)*6));
-        // printf("slots %d\n", (int)slots.data+1);
-        // perror("sdfaf");
-        // number.print(&number);
-        // number.getNumP(&number) = 88;
-        // printf("%d\n", *(int*)number.data);
-
-        // number.print(&number);
-        Job job1; initJob(&job1, 1, 2);
-        Job job2; initJob(&job2, 2, 30);
-        jobQueue.push(&jobQueue, &job1);
-        jobQueue.push(&jobQueue, &job2);
-        printJob(&job1);
-        printJob(&job2);
-        jobSemaphore.signalX(&jobSemaphore, 2); // signal that there is a new job available
-        jobQMutex.unlock(&jobQMutex);
-
-    }
-    // parent process ("the client")
-    while(1) // wait for jobs to complete
-    {
-        Job j;
-        int hasJobs = 0;
-        doneQMutex.lock(&doneQMutex);
-            hasJobs = !doneQueue.isEmpty(&doneQueue);
-            if (hasJobs) {
-                j = *(Job*) doneQueue.pop(&doneQueue);
-            }
-        doneQMutex.unlock(&doneQMutex);
-        if (hasJobs)
-        {
-            // printf("slot #%d = %d\n", j.id, slots.getNumP(&slots)[j.id]);
-            printJob(&j);
+        mutexes = malloc((numConcurrentJobs) * sizeof (Mutex));
+        for (i = 0; i < numConcurrentJobs; i++) {
+            Mutex m = newMutex();
+            mutexes[i] = m;
         }
+
+        // Thread pool
+        numThreads = numOfThreads;
+
+        if (argv[1]) {
+            numThreads = atoi(argv[1]);
+        }
+
+        for (i = 0; i < numThreads; ++i) {
+            Thread t = newThread();
+            t.startDetached(&t, worker, i);
+        }
+
+        // initialise progressArr
+        for (i = 0; i < numConcurrentJobs; i++) {
+            progressArr[i] = malloc(sizeof(int) * numThreads);
+            resetProgress(i);
+        }
+
+        puts("Enter number to factor: ");
+        while (1) {
+            if (*clientflag == '1') { // if there is data to read
+                i32 num = *number; // get data
+                if (num == 0) { // if test mode
+                    testMode = 1;
+                    printf("\nReceived: TEST MODE\n");
+                    for (int i = 0; i < 3; i++) { // simulate 3 user requests
+                        int slot = -1;
+                        if ((slot = findFreeSlot(slotsInUse)) == -1) {
+                            *clientflag = '2'; // signal that the server is busy
+                            break;
+                        }
+                        for (int j = 0; j < 10; j++) { // create a set of 10 threads/jobs
+                            slot = i;
+                            slotsInUse[slot] = 1;
+                            *number = slot; //slot; // TODO: this will set 3 different values.
+                            *clientflag = '0';
+                            jobQMutex.lock(&jobQMutex);
+                            Job job = newJob(slot, j);
+                            jobQueue.push(&jobQueue, job);
+                            jobQMutex.unlock(&jobQMutex);
+                            jobSemaphore.signalX(&jobSemaphore, 10); // signal 10 threads to work
+                        }
+                    }
+                } else {
+                    testMode = 0;
+                    int slot = -1;
+                    if ((slot = findFreeSlot(slotsInUse)) == -1) {
+                        *clientflag = '2'; // signal that the server is busy
+                    } else  {
+                        printf("\nReceived: %u set slot id to %d\n", num, slot);
+                        slotsInUse[slot] = 1;
+                        *number = slot;
+                        *clientflag = '0';
+
+                        jobQMutex.lock(&jobQMutex);
+                        for (i = 0; i < numBitShifts; i++) {
+                            Job j = newJob(slot, num);
+                            num = rotr32(num, 1);
+                            jobQueue.push(&jobQueue, j);
+                        }
+                        jobQMutex.unlock(&jobQMutex);
+                        jobSemaphore.signalX(&jobSemaphore, numBitShifts); // signal threads to work
+                    }
+                }
+            }
+
+            // progress
+            for (i = 0; i < numConcurrentJobs; i++) {
+                if (slotsInUse[i] == 1) {
+                    int slotProgress = getProgress(i);
+                    progress[i] = slotProgress; // save to shared memory
+//                    printf("Slot # %d -> %d %%\n", i, slotProgress);
+                    if (slotProgress >= 100) {
+                        serverflag[i] = '2'; // notify client that the job is done
+                        slotsInUse[i] = 0;
+//                        resetProgress(i);
+                    }
+                }
+            }
+
+            tsleep(3); // reduce CPU usage when idle
+        }
+
+        return 0;
     }
-// printJob(&job1);
-        // t.join(&t);
+    printf("Child process has a pid of %d \n", pid);
+    // parent process ("the client")
 
+    int bufferSize = 10000;
+    char userBuffer[bufferSize];
+    int origninalNumber[numConcurrentJobs] = {-1};
+    int outstandingJobs = 0;
+    struct timespec startTime = getTime();
+    float duration = 0.0f;
+    int showedProgress = 0;
 
-// clean up
-    jobQueue.destroy(&jobQueue);
-    doneQueue.destroy(&doneQueue);
-    jobQMutex.free(&jobQMutex);
-    doneQMutex.free(&doneQMutex);
-    jobSemaphore.free(&jobSemaphore);
+    while (1) {
+        duration = getTimeLapsed(startTime);
+        if (outstandingJobs > 0 && duration >= 0.5f && !testMode) { // 0.5s = 500 milliseconds
+            for (int i = 0; i < 10 + 15*outstandingJobs; i++) {
+                printf("\b");
+            }
+            printf("Progress: ");
+                // progresDisplay(progress[0]);
+        }
 
+        // read data from slots
+        for (i = 0; i < numConcurrentJobs; i++) {
 
-    // Queue q1 = newQueue();
+            if (outstandingJobs > 0 && duration >= 0.5f && progress[i] != 'x' && !testMode) {
+                printf("%*d:%*d%% ", 2, i, 3, progress[i]);
+                showedProgress = 1;
+            }
 
-    // q1.push(&q1, 8);
-    // q1.push(&q1, 99);
-    // q1.push(&q1, 89);
-    // q1.print(&q1);
-    // q1.printInt(&q1);
+            if (serverflag[i] == '1') { // data to read
+                if (showedProgress) {
+                    printf("\n");
+                    showedProgress = 0;
+                }
+                printf("Slot: %d, Number: %u, Factor: %u \n", i, origninalNumber[i], slot[i]);
+                serverflag[i] = '0';
+                startTime = getTime();
+            } else if (serverflag[i] == '2') { // finished job
+                if (showedProgress) {
+                    printf("\n");
+                    showedProgress = 0;
+                }
+                printf("Slot # %d is done processing %d\n", i, origninalNumber[i]);
+                progress[i] = 'x';
+                origninalNumber[i] = -1;
+                serverflag[i] = '0';
+                outstandingJobs--;
+                startTime = getTime();
+            }
+        }
+        fflush(0);
 
-    // printf("length = %d\n", q1.length(&q1));
-    // printf("isEmpty = %d\n", q1.isEmpty(&q1));
+        // read data from user
+        if (canRead(STDIN_FILENO, 0, 100)) { // if user typed something
+            startTime = getTime();
+            fgets(userBuffer, sizeof userBuffer, stdin);
+            removeNewLine(userBuffer);
 
+            if (strcmp(userBuffer, "q") == 0 || strcmp(userBuffer, "quit") == 0 || strcmp(userBuffer, "exit") == 0) {
+                puts("\nWaiting for threads to quit...");
+                kill(pid, SIGKILL);
+                //wait(NULL); // wait for child. TODO: actually tell child we are quitting
+                cleanup();
+                break; // exit loop
+            }
 
-    // int x = (int) q1.pop(&q1);
-    // printf("int x = %d\n", x);
-    // printf("pop = %d\n", q1.pop(&q1));
+            if (isdigitstr(userBuffer) == 0) { // it not a number
+                continue; // ignore non number characters
+            }
 
-    // q1.printInt(&q1);
+            if (outstandingJobs > 0 && atoi(userBuffer) == 0) {
+                printf("Please wait for all jobs to finish first before starting test\n");
+                continue;
+            } else if (atoi(userBuffer) == 0) {
+                testMode = 1;
+            } else {
+                testMode = 0;
+            }
 
-    // q1.destroy(&q1);
+            // send data to server
+            // TODO: have a time-out and tell the user that the server has not read the data or that there is not data to read
+            while(*clientflag != '0'){tsleep(50);} // wait until allowed to write
+            i32 temp = *number = atoi(userBuffer); // pass to server
+            *clientflag = '1';
+            while(*clientflag == '1' && !testMode){tsleep(50);} // wait until the server has read the data
+            if (*clientflag == '2') { // all slots are in use, tell user we are busy
+                puts("\nServer is busy!");
+                *clientflag = '0';
+            } else {
+                int id = *number; // read server reply
+                origninalNumber[id] = temp; // remember which slots have jobs running;
+                outstandingJobs++;
+            }
+        }
+        tsleep(3); // reduce CPU usage when idle
 
-    // q1.printInt(&q1);
+    }
 
-    // q1.push(&q1, 100);
-    // q1.printInt(&q1);
-
-
-    // Thread t1 = newThread();
-    // t1.startDetached(&t1, worker, 0);
-    // t1.join(&t1);
-
+    wait(NULL); // wait for child to exit
+    cleanup();
+    return 0;
 }
-
-// int main(int argc, char const *argv[])
-// {
-//     int numberShmid = newSharedMemory(sizeof(i32));
-//     int slotsShmid = newSharedMemory(sizeof(i32) * 10);
-
-//     int pid = fork();
-//     if (pid == -1) {
-//         perror("Error creating a new process/thread.");
-//         return 1;
-//     }
-//     if (pid != 0) {
-//         // parent process ("the client")
-//         int bufferSize = sizeof(i32) * 100;
-//         char userBuffer[bufferSize];
-//         // char serverBuffer[bufferSize];
-
-//         i32 *number = shmat(numberShmid, NULL, 0);
-//         i32 *slot = shmat(slotsShmid, NULL, 0);
-
-//         while (1) {
-
-//             if (slot[1]) {// if server has something for us to read
-//                 printf("parent received: %d\n", slot[1]);
-//                 slot[1] = 0;
-//             }
-
-//             if (canRead(STDIN_FILENO, 0, 500000)) { // if user typed something
-//                 fgets(userBuffer, sizeof userBuffer, stdin);
-//                 removeNewLine(userBuffer);
-//                 if (strcmp(userBuffer, "q") == 0 || strcmp(userBuffer, "quit") == 0 || strcmp(userBuffer, "exit") == 0) {
-//                     puts("\nWaiting for threads to quit...");
-//                     wait(NULL); // wait for child. TODO: actually tell child we are quitting
-//                     if (shmctl(numberShmid, IPC_RMID, NULL) == -1 || shmctl(slotsShmid, IPC_RMID, NULL) == -1) {
-//                         perror("shmctl");
-//                     }
-//                     puts("\n -- See you later!");
-//                     break; // exit loop
-//                 }
-
-//                 *number = atoi(userBuffer); // send number to child
-//                 printf("echo: %d\n", *number);
-//             }
-
-//         }
-//         return 0;
-//     }
-//     // child process ("the server")
-// // multithreaded
-// // must handle up to 10 simultaneous requests without blocking
-// //
-// // take each input number (i32) and will start up either the number of specified threads if given
-// // (see Req.17) or 32 threads.
-// // Each thread will be responsible for factorising an integer derived from the input number that is rotated
-// // right by a different number of bits. Given an input number input number is K, each thread
-// // #X will factorise K rotated right by (K-1) bits. For example say K and it has N significant bits, then thread
-// // #0 will factorise the number K rotated right by 0 bits, thread
-// // #1 will factorise K rotated right by 1 bit, thread
-// // #2 will factorise K rotated right by 2 bits etc.
-// // Rotating an integer K by B bits = ( K >> B) | (K << 32 – B). CLARIFICATION: C= K << (32 – B); Rotated = ( K >> B) | C
-
-//     i32 *number = shmat(numberShmid, NULL, 0);
-//     i32 *slot = shmat(slotsShmid, NULL, 0);
-//     pthread_t t1, t2, t3, t4;
-//     // Thread t1 = newThread(), t2 = newThread(), t3 = newThread(), t4 = newThread();
-//     int threadNum = 4;
-//     int i = 0;
-//     puts("start loop");
-//     while (1) {
-//         if (*number) {
-//             printf("child received: %d\n", *number);
-//             // insert multi threading here
-//             // do a bitshift, qoue jobs
-//             // threads take jobs and factorise
-//             // i32 temp = *number;
-//             printNum(*number);
-//             // t1.start(&t1, *func, (void *)number);
-//             pthread_create(&t1, NULL, *func, (void *)number);
-//             i++;
-
-//             *number = rotr32(*number, 1);
-//             printNum(*number);
-//             // t2.start(&t2, *func, (void *)number);
-//             pthread_create(&t2, NULL, *func, (void *)number);
-//             *number = rotr32(*number, 1);
-//             printNum(*number);
-//             // t3.start(&t3, *func, (void *)number);
-//             pthread_create(&t3, NULL, *func, (void *)number);
-//             *number = rotr32(*number, 1);
-//             printNum(*number);
-//             // t4.start(&t4, *func, (void *)number);
-//             pthread_create(&t4, NULL, *func, (void *)number);
-
-
-
-//             // t1.join(&t1);
-//             // t1.join(&t2);
-//             // t1.join(&t3);
-//             // t1.join(&t4);
-
-//             pthread_join(t1, NULL);
-//             pthread_join(t2, NULL);
-//             pthread_join(t3, NULL);
-//             pthread_join(t4, NULL);
-
-//             // slot[1] = factorise(*number);
-//             // *number = 0;
-//             for (int i = 0; i < threadNum; ++i)
-//             {
-//                 printf("%d\n", slot[i]);
-//             }
-//             exit(1);// for debugging only. comment if you like zombies
-//         }
-//     }
-//     return 0;
-// }
