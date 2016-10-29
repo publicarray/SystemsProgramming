@@ -16,6 +16,7 @@
 #define numConcurrentJobs 10
 #define numBitShifts 32
 #define numOfThreads 32
+#define slowThread 0
 
 Semaphore jobSemaphore, doneSemaphore;
 Mutex jobQMutex, clientflagMutex, numberMutex, progressMutex;
@@ -27,6 +28,7 @@ char *clientflag = NULL, *serverflag = NULL, *progress = NULL;
 i32 *number = NULL, *slot = NULL;
 Mutex *mutexes = NULL;
 int *progressArr[numConcurrentJobs];
+int testMode = 0;
 
 void cleanup() {
     if (isClean == 0) {
@@ -102,10 +104,10 @@ int getProgress(int slot) {
         progressMutex.lock(&progressMutex);
         temp = progressArr[slot][i]; // only access the variable once
         progressMutex.unlock(&progressMutex);
-        // if (temp > -1) {
+        if (temp > -1) {
             slotProgress += temp;
             workingTheads++;
-        // }
+        }
     }
 
     if (slotProgress == 0 || workingTheads == 0) {
@@ -146,23 +148,36 @@ void * worker (void * threadId) {
 
         // do job
         if (hasJob) {
-            // printf("Working job # %d\n", j.id);
-            progressArr[j.id][id] = 0;
-            // Factorise()
-            for (i32 i = 2; i*i <= j.data; i++) {
-                if (j.data % i == 0) {
-//                    printf("found factor: %u\n", i);
-                    writeToSlot(j.id, i); // factor
-//                    printf("found factor: %u\n", j.data/i);
-                    writeToSlot(j.id, j.data/i); // the result of (n/i) i.e the other factor
+            if (testMode) {
+                for (int i = 0; i < 10; ++i) {
+                    writeToSlot(j.slot, (j.data * 10) + i);// - (j.slot*10));
                 }
-                progressArr[j.id][id] = (100 * i*i) / j.data; // update progress Array
-//                printf("progress: %d \n", progressArr[j.id][id]);
-               // tsleep(100); // slowdown the thread
+            } else {
+                // printf("Working job # %d\n", j.slot);
+                progressArr[j.slot][id] = 0;
+                // Factorise()
+                for (i32 i = 2; i*i <= j.data; i++) {
+                    // tsleep(1);
+                    // slowdown the thread
+                    if (j.data % i == 0) {
+                        // // slowdown the thread
+                        if (slowThread > 1) {
+                            tsleep(slowThread);
+                        }
+    //                    printf("found factor: %u\n", i);
+                        writeToSlot(j.slot, i); // factor
+    //                    printf("found factor: %u\n", j.data/i);
+                        writeToSlot(j.slot, j.data/i); // the result of (n/i) i.e the other factor
+                    }
+                    progressMutex.lock(&progressMutex);
+                    progressArr[j.slot][id] = (100 * i*i) / j.data; // update progress Array
+                    progressMutex.unlock(&progressMutex);
+    //                printf("progress: %d \n", progressArr[j.slot][id]);
+                }
+                progressMutex.lock(&progressMutex);
+                progressArr[j.slot][id] = 100; // update progress Array
+                progressMutex.unlock(&progressMutex);
             }
-            progressMutex.lock(&progressMutex);
-            progressArr[j.id][id] = 100; // update progress Array
-            progressMutex.unlock(&progressMutex);
             // printf("Thread # %d is DONE: \n", id);
             hasJob = 0;
         }
@@ -242,26 +257,47 @@ int main(int argc, char const *argv[]) {
 
         puts("Enter number to factor: ");
         while (1) {
-            if (*clientflag == '1') { // wait until there is data to read
+            if (*clientflag == '1') { // if there is data to read
                                       // get job
                 i32 num = *number;
-                int id = -1;
-                if ((id = findFreeSlot(slotsInUse)) == -1) {
-                    *clientflag = '2';
-                } else  {
-                    printf("\nReceived: %u set slot id to %d\n", num, id);
-                    slotsInUse[id] = 1;
-                    *number = id;
-                    *clientflag = '0';
-
-                    jobQMutex.lock(&jobQMutex);
-                    for (i = 0; i < numBitShifts; i++) {
-                        Job j = newJob(id, num);
-                        num = rotr32(num, 1);
-                        jobQueue.push(&jobQueue, j);
+                if (num == 0) { // if test mode
+                    testMode = 1;
+                    printf("\nReceived: TEST MODE\n");
+                    for (int i = 0; i < 3; i++) {
+                        int slot = -1;
+                        if ((slot = findFreeSlot(slotsInUse)) == -1) {
+                            *clientflag = '2'; // signal that the server is busy
+                        } else {
+                            *number = 0; //id; // TODO: this will set 3 different values.
+                            *clientflag = '0';
+                            jobQMutex.lock(&jobQMutex);
+                            Job j = newJob(slot, i);
+                            jobQueue.push(&jobQueue, j);
+                            jobQMutex.unlock(&jobQMutex);
+                            jobSemaphore.signalX(&jobSemaphore, 10); // signal threads to work
+                        }
                     }
-                    jobQMutex.unlock(&jobQMutex);
-                    jobSemaphore.signalX(&jobSemaphore, numBitShifts); // signal threads to work
+                    // 10 * 3 threads
+                    // thread id * 10 +1
+                } else {
+                    int slot = -1;
+                    if ((slot = findFreeSlot(slotsInUse)) == -1) {
+                        *clientflag = '2'; // signal that the server is busy
+                    } else  {
+                        printf("\nReceived: %u set slot id to %d\n", num, slot);
+                        slotsInUse[slot] = 1;
+                        *number = slot;
+                        *clientflag = '0';
+
+                        jobQMutex.lock(&jobQMutex);
+                        for (i = 0; i < numBitShifts; i++) {
+                            Job j = newJob(slot, num);
+                            num = rotr32(num, 1);
+                            jobQueue.push(&jobQueue, j);
+                        }
+                        jobQMutex.unlock(&jobQMutex);
+                        jobSemaphore.signalX(&jobSemaphore, numBitShifts); // signal threads to work
+                    }
                 }
             }
 
@@ -272,7 +308,7 @@ int main(int argc, char const *argv[]) {
                     progress[i] = slotProgress; // save to shared memory
 //                    printf("Slot # %d -> %d %%\n", i, slotProgress);
                     if (slotProgress >= 100) {
-                        serverflag[i] = '2'; // notefy client that the job is done
+                        serverflag[i] = '2'; // notify client that the job is done
                         slotsInUse[i] = 0;
 //                        resetProgress(i);
                     }
@@ -294,7 +330,7 @@ int main(int argc, char const *argv[]) {
 
     while (1) {
         duration = getTimeLapsed(startTime);
-        if (outstandingJobs > 0 && duration >= 0.5f) { // 0.5s = 500 milliseconds
+        if (outstandingJobs > 0 && duration >= 0.5f && !testMode) { // 0.5s = 500 milliseconds
             for (int i = 0; i < 10 + 15*outstandingJobs; i++) {
                 printf("\b");
             }
@@ -342,11 +378,19 @@ int main(int argc, char const *argv[]) {
                 continue; // ignore non number characters
             }
 
+            if (outstandingJobs > 0 && strcmp(userBuffer, "0") == 0) {
+                printf("Please wait for all jobs to finish first before starting test\n");
+                continue;
+            } else if (strcmp(userBuffer, "0") == 0) {
+                testMode = 1;
+            }
+
             // send data to server
+            // TODO: have a time-out and tell the user that the server has not read the data or that there is not data to read
             while(*clientflag != '0'){tsleep(50);} // wait until allowed to write
             i32 temp = *number = atoi(userBuffer); // pass to server
             *clientflag = '1';
-            while(*clientflag == '1'){tsleep(50);} // wait until the server has read the data
+            while(*clientflag == '1' && !testMode){tsleep(50);} // wait until the server has read the data
             if (*clientflag == '2') { // all slots are in use, tell user we are busy
                 puts("\nServer is busy!");
                 *clientflag = '0';

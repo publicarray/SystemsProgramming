@@ -4,10 +4,8 @@
 #include "lib.h"
 
 typedef struct Job_{
-    int id;
+    int slot;
     i32 data;
-    i32 output;
-    int done;
     void (*print) (struct Job_ * self);
 
 } Job;
