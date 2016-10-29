@@ -6,7 +6,7 @@
 make
 make install
 make uninstall
-    
+
 
 # or compile with mingw32: (Not Working Yet)
 # make CC='i686-w64-mingw32-gcc -std=c99' OUT='main.exe'
@@ -24,7 +24,7 @@ make
 make install
 ```
 
-## Manualy
+## Manually
 
 ### Compile and run the program
 
@@ -34,9 +34,9 @@ cc main.c lib.c Thread.c Mutex.c ConditionVariable.c Semaphore.c Job.c JobQueue.
 
 # Usage
 
-main <number-of-threads>
+`main <number-of-threads>`
 
-    number-of-threads: default 32
+number-of-threads: default is 32 threads.
 
 ## Example
 
@@ -48,7 +48,7 @@ main 15
 
 # Commands
 
-[number] - bit-shifts 32 times and factorises the result 
+\[32bit number\] - bit-shifts 32 times and factorises the result
 
 0 - test mode
 
