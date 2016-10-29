@@ -412,6 +412,11 @@ int main(int argc, char const *argv[]) {
             if (*clientflag == '2') { // all slots are in use, tell user we are busy
                 puts("\nServer is busy!");
                 *clientflag = '0';
+            } else if (testMode) {
+                origninalNumber[0] = 0;
+                origninalNumber[1] = 0;
+                origninalNumber[2] = 0;
+                outstandingJobs+=3;
             } else {
                 int id = *number; // read server reply
                 origninalNumber[id] = temp; // remember which slots have jobs running;
