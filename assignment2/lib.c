@@ -130,7 +130,7 @@ void removeNewLine(char* inStr) {
 
 #include <time.h>
 // http://cc.byexamples.com/2007/05/25/nanosleep-is-better-than-sleep-and-usleep/
-void tsleep(unsigned int milliseconds)
+void tsleep(float milliseconds)
 {
     struct timespec time;
     time.tv_sec = (milliseconds / 1000);

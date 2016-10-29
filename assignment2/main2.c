@@ -16,7 +16,7 @@
 #define numConcurrentJobs 10
 #define numBitShifts 32
 #define numOfThreads 32
-#define slowThread 0
+#define slowThread 0.1f
 
 Semaphore jobSemaphore, doneSemaphore;
 Mutex jobQMutex, clientflagMutex, numberMutex, progressMutex;
@@ -148,22 +148,22 @@ void * worker (void * threadId) {
 
         // do job
         if (hasJob) {
+            // printf("Working job # %d\n", j.slot);
+            progressArr[j.slot][id] = 0;
+
             if (testMode) {
                 for (int i = 0; i < 10; ++i) {
                     writeToSlot(j.slot, (j.data * 10) + i);// - (j.slot*10));
                 }
             } else {
-                // printf("Working job # %d\n", j.slot);
-                progressArr[j.slot][id] = 0;
                 // Factorise()
                 for (i32 i = 2; i*i <= j.data; i++) {
-                    // tsleep(1);
-                    // slowdown the thread
+                     // Cripple threads so that the progress bar shows
+                    if (slowThread > 0.0f) {
+                        tsleep(slowThread); // slowdown the thread
+                    }
+
                     if (j.data % i == 0) {
-                        // // slowdown the thread
-                        if (slowThread > 1) {
-                            tsleep(slowThread);
-                        }
     //                    printf("found factor: %u\n", i);
                         writeToSlot(j.slot, i); // factor
     //                    printf("found factor: %u\n", j.data/i);
@@ -174,10 +174,11 @@ void * worker (void * threadId) {
                     progressMutex.unlock(&progressMutex);
     //                printf("progress: %d \n", progressArr[j.slot][id]);
                 }
-                progressMutex.lock(&progressMutex);
-                progressArr[j.slot][id] = 100; // update progress Array
-                progressMutex.unlock(&progressMutex);
             }
+
+            progressMutex.lock(&progressMutex);
+            progressArr[j.slot][id] = 100; // update progress Array
+            progressMutex.unlock(&progressMutex);
             // printf("Thread # %d is DONE: \n", id);
             hasJob = 0;
         }
@@ -268,7 +269,9 @@ int main(int argc, char const *argv[]) {
                         if ((slot = findFreeSlot(slotsInUse)) == -1) {
                             *clientflag = '2'; // signal that the server is busy
                         } else {
-                            *number = 0; //id; // TODO: this will set 3 different values.
+                            slot = 0;
+                            slotsInUse[slot] = 1;
+                            *number = slot; //slot; // TODO: this will set 3 different values.
                             *clientflag = '0';
                             jobQMutex.lock(&jobQMutex);
                             Job j = newJob(slot, i);
@@ -280,6 +283,7 @@ int main(int argc, char const *argv[]) {
                     // 10 * 3 threads
                     // thread id * 10 +1
                 } else {
+                    testMode = 0;
                     int slot = -1;
                     if ((slot = findFreeSlot(slotsInUse)) == -1) {
                         *clientflag = '2'; // signal that the server is busy
@@ -326,7 +330,8 @@ int main(int argc, char const *argv[]) {
     int origninalNumber[numConcurrentJobs] = {-1};
     int outstandingJobs = 0;
     struct timespec startTime = getTime();
-    float duration;
+    float duration = 0.0f;
+    int showedProgress = 0;
 
     while (1) {
         duration = getTimeLapsed(startTime);
@@ -341,15 +346,24 @@ int main(int argc, char const *argv[]) {
         // read data from slots
         for (i = 0; i < numConcurrentJobs; i++) {
 
-            if (outstandingJobs > 0 && duration >= 0.5f && progress[i] != 'x') {
+            if (outstandingJobs > 0 && duration >= 0.5f && progress[i] != 'x' && !testMode) {
                 printf("%*d:%*d%% ", 2, i, 3, progress[i]);
+                showedProgress = 1;
             }
 
             if (serverflag[i] == '1') { // data to read
+                if (showedProgress) {
+                    printf("\n");
+                    showedProgress = 0;
+                }
                 printf("Slot: %d, Number: %u, Factor: %u \n", i, origninalNumber[i], slot[i]);
                 serverflag[i] = '0';
                 startTime = getTime();
             } else if (serverflag[i] == '2') { // finished job
+                if (showedProgress) {
+                    printf("\n");
+                    showedProgress = 0;
+                }
                 printf("Slot # %d is done processing %d\n", i, origninalNumber[i]);
                 progress[i] = 'x';
                 origninalNumber[i] = -1;
@@ -378,11 +392,13 @@ int main(int argc, char const *argv[]) {
                 continue; // ignore non number characters
             }
 
-            if (outstandingJobs > 0 && strcmp(userBuffer, "0") == 0) {
+            if (outstandingJobs > 0 && atoi(userBuffer) == 0) {
                 printf("Please wait for all jobs to finish first before starting test\n");
                 continue;
-            } else if (strcmp(userBuffer, "0") == 0) {
+            } else if (atoi(userBuffer) == 0) {
                 testMode = 1;
+            } else {
+                testMode = 0;
             }
 
             // send data to server

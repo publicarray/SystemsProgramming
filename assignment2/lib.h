@@ -29,7 +29,7 @@ void * getSharedMem(int shmid);
 void removeNewLine(char* inStr);
 void printNum(i32 num);
 int isdigitstr (char * buffer);
-void tsleep(unsigned int milliseconds);
+void tsleep(float milliseconds);
 struct timespec getTime();
 float getTimeLapsed(struct timespec start);
 
