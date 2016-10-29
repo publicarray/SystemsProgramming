@@ -134,7 +134,7 @@ void * worker (void * threadId) {
     while (1) {
         int hasJob = 0;
         Job j;
-
+        // printf("Thread # %d sleeping\n", id);
         jobSemaphore.wait(&jobSemaphore); // wait for job
         // printf("Thread # %d Woken up\n", id);
         // we might be woken up at any time
@@ -152,8 +152,9 @@ void * worker (void * threadId) {
             progressArr[j.slot][id] = 0;
 
             if (testMode) {
-                for (int i = 0; i < 10; ++i) {
-                    writeToSlot(j.slot, (j.data * 10) + i);// - (j.slot*10));
+                for (int i = 0; i < 10; ++i) { // output ten numbers
+                    // printf("thread:%d set:%d slot:%d result:%d\n", id, j.data, j.slot, (id * 10) + i);
+                    writeToSlot(j.slot, (id * 10) + i);
                 }
             } else {
                 // Factorise()
@@ -164,7 +165,7 @@ void * worker (void * threadId) {
                     }
 
                     if (j.data % i == 0) {
-    //                    printf("found factor: %u\n", i);
+                       // printf("found factor: %u\n", i);
                         writeToSlot(j.slot, i); // factor
     //                    printf("found factor: %u\n", j.data/i);
                         writeToSlot(j.slot, j.data/i); // the result of (n/i) i.e the other factor
@@ -259,29 +260,28 @@ int main(int argc, char const *argv[]) {
         puts("Enter number to factor: ");
         while (1) {
             if (*clientflag == '1') { // if there is data to read
-                                      // get job
-                i32 num = *number;
+                i32 num = *number; // get data
                 if (num == 0) { // if test mode
                     testMode = 1;
                     printf("\nReceived: TEST MODE\n");
-                    for (int i = 0; i < 3; i++) {
+                    for (int i = 0; i < 3; i++) { // simulate 3 user requests
                         int slot = -1;
                         if ((slot = findFreeSlot(slotsInUse)) == -1) {
                             *clientflag = '2'; // signal that the server is busy
-                        } else {
-                            slot = 0;
+                            break;
+                        }
+                        for (int j = 0; j < 10; j++) { // create a set of 10 threads/jobs
+                            slot = i;
                             slotsInUse[slot] = 1;
                             *number = slot; //slot; // TODO: this will set 3 different values.
                             *clientflag = '0';
                             jobQMutex.lock(&jobQMutex);
-                            Job j = newJob(slot, i);
-                            jobQueue.push(&jobQueue, j);
+                            Job job = newJob(slot, j);
+                            jobQueue.push(&jobQueue, job);
                             jobQMutex.unlock(&jobQMutex);
-                            jobSemaphore.signalX(&jobSemaphore, 10); // signal threads to work
+                            jobSemaphore.signalX(&jobSemaphore, 10); // signal 10 threads to work
                         }
                     }
-                    // 10 * 3 threads
-                    // thread id * 10 +1
                 } else {
                     testMode = 0;
                     int slot = -1;
@@ -318,6 +318,8 @@ int main(int argc, char const *argv[]) {
                     }
                 }
             }
+
+            tsleep(3); // reduce CPU usage when idle
         }
 
         return 0;
@@ -416,7 +418,7 @@ int main(int argc, char const *argv[]) {
                 outstandingJobs++;
             }
         }
-        tsleep(2);
+        tsleep(3); // reduce CPU usage when idle
 
     }
 
