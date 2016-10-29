@@ -7,7 +7,6 @@ make
 make install
 make uninstall
 
-
 # or compile with mingw32: (Not Working Yet)
 # make CC='i686-w64-mingw32-gcc -std=c99' OUT='main.exe'
 ```
@@ -40,11 +39,9 @@ number-of-threads: default is 32 threads.
 
 ## Example
 
-
 ```bash
 main 15
 ```
-
 
 # Commands
 
