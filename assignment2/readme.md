@@ -2,17 +2,19 @@
 
 ## Makefile
 
-```sh
+```bash
 make
 make install
+make uninstall
+    
 
-# or compile with mingw32:
-make CC='i686-w64-mingw32-gcc -std=c99' SERVER='server.exe' CLIENT='client.exe'
+# or compile with mingw32: (Not Working Yet)
+# make CC='i686-w64-mingw32-gcc -std=c99' OUT='main.exe'
 ```
 
 ## CMake
 
-```sh
+```bash
 mkdir build
 cd build
 cmake ..
@@ -27,23 +29,26 @@ make install
 ### Compile and run the program
 
 ```bash
-cc main.c lib.c -o bin/main && bin/main
+cc main.c lib.c Thread.c Mutex.c ConditionVariable.c Semaphore.c Job.c JobQueue.c -o bin/main && bin/main
 ```
 
 # Usage
 
+main <number-of-threads>
+
+    number-of-threads: default 32
+
 ## Example
 
-main
 
-```sh
-main
+```bash
+main 15
 ```
 
 
 # Commands
 
-[number] 
+[number] - bit-shifts 32 times and factorises the result 
 
 0 - test mode
 
