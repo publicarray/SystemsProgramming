@@ -9,6 +9,7 @@
 #include "Mutex.h"
 #include "ConditionVariable.h"
 #include "Semaphore.h"
+#include "Request.h"
 #include "JobQueue.h"
 #include "Job.h"
 #include "lib.h"
@@ -329,7 +330,7 @@ int main(int argc, char const *argv[]) {
 
     int bufferSize = 10000;
     char userBuffer[bufferSize];
-    int origninalNumber[numConcurrentJobs] = {-1};
+    Request requests[numConcurrentJobs];
     int outstandingJobs = 0;
     struct timespec startTime = getTime();
     float duration = 0.0f;
@@ -358,7 +359,7 @@ int main(int argc, char const *argv[]) {
                     printf("\n");
                     showedProgress = 0;
                 }
-                printf("Slot: %d, Number: %u, Factor: %u \n", i, origninalNumber[i], slot[i]);
+                printf("Slot: %d, Number: %u, Factor: %u \n", i, requests[i].number, slot[i]);
                 serverflag[i] = '0';
                 startTime = getTime();
             } else if (serverflag[i] == '2') { // finished job
@@ -366,9 +367,9 @@ int main(int argc, char const *argv[]) {
                     printf("\n");
                     showedProgress = 0;
                 }
-                printf("Slot # %d is done processing %d\n", i, origninalNumber[i]);
+                printf(BLU "Slot # %d is done processing %d in %f seconds" NRM "\n", i, requests[i].number, requests[i].duration(&requests[i]));
                 progress[i] = 'x';
-                origninalNumber[i] = -1;
+                // requests[i] = newRequest(-1);
                 serverflag[i] = '0';
                 outstandingJobs--;
                 startTime = getTime();
@@ -413,13 +414,13 @@ int main(int argc, char const *argv[]) {
                 puts("\nServer is busy!");
                 *clientflag = '0';
             } else if (testMode) {
-                origninalNumber[0] = 0;
-                origninalNumber[1] = 0;
-                origninalNumber[2] = 0;
+                requests[0] = newRequest(0);
+                requests[1] = newRequest(0);
+                requests[2] = newRequest(0);
                 outstandingJobs+=3;
             } else {
                 int id = *number; // read server reply
-                origninalNumber[id] = temp; // remember which slots have jobs running;
+                requests[id] = newRequest(temp); // // remember which slots have jobs running
                 outstandingJobs++;
             }
         }

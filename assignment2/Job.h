@@ -10,6 +10,6 @@ typedef struct Job_{
 
 } Job;
 
-Job newJob(int id, int data);
+Job newJob(int id, i32 data);
 
 #endif

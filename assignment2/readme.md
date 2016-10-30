@@ -28,7 +28,7 @@ make install
 ### Compile and run the program
 
 ```bash
-cc main.c lib.c Thread.c Mutex.c ConditionVariable.c Semaphore.c Job.c JobQueue.c -o bin/main && bin/main
+cc main.c lib.c Thread.c Mutex.c ConditionVariable.c Semaphore.c Request.c Job.c JobQueue.c -o bin/main && bin/main
 ```
 
 # Usage

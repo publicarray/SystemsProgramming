@@ -2,7 +2,7 @@ OUTDIR := bin/
 ISTALLDIR := /usr/local/bin/
 OUT := main
 
-SRC = main.c lib.c Thread.c Mutex.c ConditionVariable.c Semaphore.c Job.c JobQueue.c
+SRC = main.c lib.c Thread.c Mutex.c ConditionVariable.c Semaphore.c  Request.c Job.c JobQueue.c
 
 CFLAGS := -Wall -O3
 CC := gcc
