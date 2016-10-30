@@ -243,7 +243,6 @@ void * worker (void * threadId) {
  * @return      Exit code
  */
 int main(int argc, char const *argv[]) {
-    signal(SIGINT, terminate); // clean-up [Control + C]
     signal(SIGQUIT, terminate); // clean-up
     int i;
     jobSemaphore = newSemaphore(0);
@@ -377,6 +376,7 @@ int main(int argc, char const *argv[]) {
     }
     printf("Child process has a pid of %d \n", pid);
     // parent process ("the client")
+    signal(SIGINT, terminate); // clean-up [Control + C]
 
     int bufferSize = 10000;
     char userBuffer[bufferSize];
