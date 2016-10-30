@@ -1,3 +1,10 @@
+/**
+ * @file main.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief Multi-threaded server, and client process for factorisation.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -14,16 +21,21 @@
 #include "Job.h"
 #include "lib.h"
 
+/** Maximum concurrent jobs that are allowed. Also sets the number of slots. */
 #define numConcurrentJobs 10
+/** The number of times to do a bit-shift on the input number. */
 #define numBitShifts 32
+/** The default number of threads in the tread pool */
 #define numOfThreads 32
-#define slowThread 0.3f // cripple threads and slow them down, useful to see the progress. (in ms)
+/** Cripple threads and slow them down, useful to see the progress %. (in ms) */
+#define slowThread 0.3f
 
-Semaphore jobSemaphore, doneSemaphore;
-Mutex jobQMutex, clientflagMutex, numberMutex, progressMutex;
-JobQueue jobQueue, doneQueue;
+Semaphore jobSemaphore;
+Mutex jobQMutex, progressMutex;
+JobQueue jobQueue;
 int shmid, numThreads;
 void * sharedMem = NULL;
+/** Keep track if everything has been cleaned-up and freed. */
 int isClean = 0;
 char *clientflag = NULL, *serverflag = NULL, *progress = NULL;
 i32 *number = NULL, *slot = NULL;
@@ -31,16 +43,15 @@ Mutex *mutexes = NULL;
 int *progressArr[numConcurrentJobs];
 int testMode = 0;
 
+/**
+ * Removes all objects and frees memory.
+ */
 void cleanup() {
     if (isClean == 0) {
         puts("\nCleaning up ...");
         jobQueue.destroy(&jobQueue);
-        doneQueue.destroy(&doneQueue);
         jobQMutex.free(&jobQMutex);
-        clientflagMutex.free(&clientflagMutex);
-        numberMutex.free(&numberMutex);
         jobSemaphore.free(&jobSemaphore);
-        doneSemaphore.free(&doneSemaphore);
         freeSharedMem(shmid);
         free(mutexes);
         for (int i = 0; i < numConcurrentJobs; i++) {
@@ -51,6 +62,10 @@ void cleanup() {
     }
 }
 
+/**
+ * Called when program quits, cleans up all objects and closes all child processes
+ * @param sig The signal that causes the program to exit. e.g. INT or QUIT
+ */
 void terminate (int sig) {
     int pid;
     while ((pid = wait(NULL)) > 0) { // wait for processes to finish
@@ -63,6 +78,11 @@ void terminate (int sig) {
     exit(0);
 }
 
+/**
+ * Find the next available slot in the array.
+ * @param  slotsInUse The array to search.
+ * @return            The first index / slot number that is free.
+ */
 int findFreeSlot(int *slotsInUse) {
     for (int i = 0; i < numConcurrentJobs; i++) {
         if (slotsInUse[i] == 0) {
@@ -72,6 +92,11 @@ int findFreeSlot(int *slotsInUse) {
     return -1; // all slots are in use
 }
 
+/**
+ * Save the value to the shared memory slot so that the client can read it. [Thread safe]
+ * @param slotNum The slot number to write to
+ * @param value   The 32 number to write to the slot
+ */
 void writeToSlot(int slotNum, i32 value) {
     while(1) {
         mutexes[slotNum].lock(&mutexes[slotNum]);
@@ -86,6 +111,10 @@ void writeToSlot(int slotNum, i32 value) {
     }
 }
 
+/**
+ * Reset the progress array for a specific slot.
+ * @param slot The slot number to reset.
+ */
 void resetProgress(int slot) {
     // reset progressArray
     for (int i = 0; i < numThreads; i++) {
@@ -93,6 +122,12 @@ void resetProgress(int slot) {
     }
 }
 
+/**
+ * Read the progress from all threads working at a specific slot and
+ * calculate the total progress for the slot.
+ * @param  slot The slot number to read from
+ * @return      The progress as a percentage
+ */
 int getProgress(int slot) { // The number may fluctuate because any thread my work for any job/slot
     if (slot > numConcurrentJobs) {
         printf("getProgress() slot number too high! %d", slot);
@@ -117,6 +152,10 @@ int getProgress(int slot) { // The number may fluctuate because any thread my wo
     return slotProgress / workingTheads;
 }
 
+/**
+ * Display a progress bar as a percentage in the terminal without new lines.
+ * @param progress The current progress out of 100.
+ */
 void progresDisplay(int progress) {
     int i;
 
@@ -129,6 +168,13 @@ void progresDisplay(int progress) {
     fflush(0);
 }
 
+/**
+ * The function running in the Threads. The threads look for jobs to work on and
+ * factorise the number given in the job. The result and progress is written to
+ * global variables. The threads can also run in test mode.
+ * @param  threadId The Thread number
+ * @return          nothing
+ */
 void * worker (void * threadId) {
     int id = (int) threadId;
     printf("Thread #%d started.\n", id);
@@ -188,18 +234,22 @@ void * worker (void * threadId) {
     return 0;
 }
 
+/**
+ * Initialises the server and runs the client. The server process runs a thread pool and
+ * waits for commands from the client. The server sends user commands to
+ * the server and passes responses back to the user.
+ * @param  argc Number of arguments given
+ * @param  argv The arguments from the user, the number of threads to spawn
+ * @return      Exit code
+ */
 int main(int argc, char const *argv[]) {
     signal(SIGINT, terminate); // clean-up [Control + C]
     signal(SIGQUIT, terminate); // clean-up
     int i;
     jobSemaphore = newSemaphore(0);
-    doneSemaphore = newSemaphore(0);
     jobQMutex = newMutex();
-    clientflagMutex = newMutex();
     progressMutex = newMutex();
-    numberMutex = newMutex();
     jobQueue = newJobQueue();
-    doneQueue = newJobQueue();
     shmid = newSharedMem(1 + 10 + sizeof(i32) + (sizeof(i32)*10) + 10);
     sharedMem = getSharedMem(shmid);
 

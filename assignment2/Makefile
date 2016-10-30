@@ -26,5 +26,8 @@ uninstall:
 
 remove: uninstall
 
+docs: ${SRC}
+	doxygen doc.cfg
+
 help:
-	@echo "Usage: make <command>\n  all (default) - build the binary into bin/ using the source code. \n  help - displays usage information (this screen)\n  clean - removes build binary\n  install - copy binary to /usr/local/bin/\n  uninstall - remove binary from /usr/local/bin/\n  remove - alias to uninstall\n"
+	@echo "Usage: make <command>\n  all (default) - build the binary into bin/ using the source code. \n  help - displays usage information (this screen)\n  clean - removes build binary\n  install - copy binary to /usr/local/bin/\n  uninstall - remove binary from /usr/local/bin/\n  remove - alias to uninstall\n  docs - generate api documenation"
