@@ -395,7 +395,7 @@ int main(int argc, char const *argv[]) {
             }
 
             if (outstandingJobs > 0 && atoi(userBuffer) == 0) {
-                printf("Please wait for all jobs to finish first before starting test\n");
+                printf(RED "Please wait for all jobs to finish first before starting test" NRM "\n");
                 continue;
             } else if (atoi(userBuffer) == 0) {
                 testMode = 1;
@@ -410,7 +410,7 @@ int main(int argc, char const *argv[]) {
             *clientflag = '1';
             while(*clientflag == '1' && !testMode){tsleep(50);} // wait until the server has read the data
             if (*clientflag == '2') { // all slots are in use, tell user we are busy
-                puts("\nServer is busy!");
+                puts("\n" RED "Server is busy!" NRM "\n");
                 *clientflag = '0';
             } else if (testMode) {
                 requests[0] = newRequest(0);
