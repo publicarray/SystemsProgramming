@@ -1,3 +1,10 @@
+/**
+ * @file SharedMemory.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief A POSIX abstraction for Shared Memory.
+ * @note Currently not in use
+ */
 #include "SharedMemory.h"
 #include <stdlib.h>
 #include <stdio.h>

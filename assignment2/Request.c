@@ -1,3 +1,10 @@
+/**
+ * @file Request.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief An object for storing job parameters for the client i.e. the request to the server
+ */
+
 #include <stdio.h>
 #include <sys/time.h>
 #include "Request.h"

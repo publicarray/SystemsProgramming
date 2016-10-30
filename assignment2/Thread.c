@@ -1,5 +1,10 @@
+/**
+ * @file Thread.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief A POSIX Abstraction for Threads.
+ */
 #include "Thread.h"
-
 #include <pthread.h>
 
 static void __detachedThread(Thread * self, void* (*f) (void *), void * data) {

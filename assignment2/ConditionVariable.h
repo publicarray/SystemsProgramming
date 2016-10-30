@@ -1,3 +1,9 @@
+/**
+ * @file ConditionVariable.h
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief A POSIX Abstraction for Condition Variables.
+ */
 #ifndef CONDVAR_H
 #define CONDVAR_H
 

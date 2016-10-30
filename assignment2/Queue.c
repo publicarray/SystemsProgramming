@@ -1,3 +1,11 @@
+/**
+ * @file Queue.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief Simple Linked List data structure
+ * @note Currently not in use
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "Queue.h"

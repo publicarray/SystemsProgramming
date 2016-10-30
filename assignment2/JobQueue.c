@@ -1,3 +1,9 @@
+/**
+ * @file JobQueue.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief A Linked List for storing Jobs in a First in First out (FIFO) data structure.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include "JobQueue.h"
@@ -49,6 +55,7 @@ static void __pushJobQueue(JobQueue *self, Job j)
     self->size++;
 }
 
+/** Return the next node in the list/queue */
 static Job __popJobQueue(JobQueue * self)
 {
     if (__isEmptyJobQueue(self)) {
@@ -62,7 +69,6 @@ static Job __popJobQueue(JobQueue * self)
     return front->j;
 }
 
-//--- print out the content of the queue---
 static void __printJobQueue(JobQueue *self)
 {
     Node *temp = self->root;
@@ -73,6 +79,10 @@ static void __printJobQueue(JobQueue *self)
     printf("\n");
 }
 
+/**
+ * @brief Constructor, creates a new JobQueue
+ * @return JobQueue
+ */
 JobQueue newJobQueue()
 {
     JobQueue q;

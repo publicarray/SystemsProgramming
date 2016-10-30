@@ -1,7 +1,26 @@
+/**
+ * @file lib.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief library of utility functions.
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include "lib.h"
-
+#include <stdint.h>  // for i32, to get 32bit-wide rotates, regardless of the size of int.
+#include <limits.h>  // for CHAR_BIT
+#include <string.h>
+#include <ctype.h>
+#include <sys/types.h>
+#include <sys/select.h>
+#include <string.h>
+#include <time.h>
+#include <sys/time.h>
+#include <sys/stat.h>
+#ifdef __MACH__ // macOS
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
 // typedef uint_least32_t i32;
 
 // start with how to bit shift in a cycle, threads and then inter-process/thread communications
@@ -14,9 +33,6 @@
  * The mask, used with bitwise-and (&), prevents undefined behaviour
  * when the shift count is 0 or >= the width of unsigned int.
  */
-
-#include <stdint.h>  // for i32, to get 32bit-wide rotates, regardless of the size of int.
-#include <limits.h>  // for CHAR_BIT
 
 i32 rotl32 (i32 value, unsigned int count) {
     i32 mask = (CHAR_BIT*sizeof(value)-1); // 32
@@ -47,8 +63,6 @@ void printNum(i32 num)
 
 }
 
-#include <string.h>
-#include <ctype.h>
 int isdigitstr (char * buffer) {
     int r = 1;
     for (int i = 0; i < strlen(buffer); i++) {
@@ -80,9 +94,6 @@ i32 factorise(i32 n) {
 // a= a random number that is less than p
 // p= int to check e.g 181
 // 68^180 mod 181 = 1 so probably a prime with low error
-
-#include <sys/types.h>
-#include <sys/select.h>
 
 int canRead(int fd, int seconds, int microseconds) {
     fd_set readfd;
@@ -120,15 +131,12 @@ void* getSharedMem(int shmid) {
     return p;
 }
 
-#include <string.h>
-
 void removeNewLine(char* inStr) {
     if ((strlen(inStr) > 0) && (inStr[strlen(inStr) - 1] == '\n')) {
         inStr[strlen(inStr) - 1] = 0x00;
     }
 }
 
-#include <time.h>
 // http://cc.byexamples.com/2007/05/25/nanosleep-is-better-than-sleep-and-usleep/
 void tsleep(float milliseconds)
 {
@@ -142,13 +150,6 @@ void tsleep(float milliseconds)
     }
     return;
 }
-
-#include <sys/time.h>
-#include <sys/stat.h>
-#ifdef __MACH__ // macOS
-#include <mach/clock.h>
-#include <mach/mach.h>
-#endif
 
 struct timespec getTime() {
     struct timespec time;

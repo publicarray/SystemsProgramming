@@ -1,5 +1,11 @@
-#include "Mutex.h"
+/**
+ * @file Mutex.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief A POSIX abstraction for Mutexes.
+ */
 
+#include "Mutex.h"
 #include <pthread.h>
 
 static Mutex __initMutex()

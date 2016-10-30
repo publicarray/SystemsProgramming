@@ -1,3 +1,9 @@
+/**
+ * @file Thread.h
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief A POSIX Abstraction for Threads.
+ */
 #ifndef THREAD_H
 #define THREAD_H
 

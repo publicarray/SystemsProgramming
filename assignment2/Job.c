@@ -1,3 +1,9 @@
+/**
+ * @file Job.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief An object for storing job parameters
+ */
 #include <stdio.h>
 #include "Job.h"
 #include "lib.h"

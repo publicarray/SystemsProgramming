@@ -1,6 +1,7 @@
-# Build & Install
+# Multi-threaded factorisation program
+## Build & Install
 
-## Makefile
+### Makefile
 
 ```bash
 make
@@ -11,7 +12,7 @@ make uninstall
 # make CC='i686-w64-mingw32-gcc -std=c99' OUT='main.exe'
 ```
 
-## CMake
+### CMake
 
 ```bash
 mkdir build
@@ -23,27 +24,27 @@ make
 make install
 ```
 
-## Manually
+### Manually
 
-### Compile and run the program
+#### Compile and run the program
 
 ```bash
 cc main.c lib.c Thread.c Mutex.c ConditionVariable.c Semaphore.c Request.c Job.c JobQueue.c -o bin/main && bin/main
 ```
 
-# Usage
+## Usage
 
 `main <number-of-threads>`
 
 number-of-threads: default is 32 threads.
 
-## Example
+### Example
 
 ```bash
 bin/main 15
 ```
 
-# Commands
+## Commands
 
 \[32bit number\] - bit-shifts 32 times and factorises the result
 

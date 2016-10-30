@@ -3,6 +3,11 @@
  * @author Sebastian Schmidt
  * @date 30 Oct 2016
  * @brief Multi-threaded server, and client process for factorisation.
+ * @mainpage Multi-threaded factorisation program
+ * <h2><a href="md_readme.html">Install Instructions</a></h2>
+ * Complete documentation: main.c, lib.c, lib.h
+ * <p>
+ * <a href="files.html">All Files</a> | <a href="annotated.html">Data Structures</a>
  */
 
 #include <stdlib.h>
@@ -21,13 +26,13 @@
 #include "Job.h"
 #include "lib.h"
 
-/** Maximum concurrent jobs that are allowed. Also sets the number of slots. */
+/** @brief Maximum concurrent jobs that are allowed. Also sets the number of slots. */
 #define numConcurrentJobs 10
-/** The number of times to do a bit-shift on the input number. */
+/** @brief The number of times to do a bit-shift on the input number. */
 #define numBitShifts 32
-/** The default number of threads in the tread pool */
+/** @brief The default number of threads in the tread pool */
 #define numOfThreads 32
-/** Cripple threads and slow them down, useful to see the progress %. (in ms) */
+/** @brief Cripple threads and slow them down, useful to see the progress %. (in ms) */
 #define slowThread 0.3f
 
 Semaphore jobSemaphore;
@@ -35,8 +40,7 @@ Mutex jobQMutex, progressMutex;
 JobQueue jobQueue;
 int shmid, numThreads;
 void * sharedMem = NULL;
-/** Keep track if everything has been cleaned-up and freed. */
-int isClean = 0;
+int isClean = 0;/**< @brief Keep track if everything has been cleaned-up and freed. */
 char *clientflag = NULL, *serverflag = NULL, *progress = NULL;
 i32 *number = NULL, *slot = NULL;
 Mutex *mutexes = NULL;
@@ -44,7 +48,7 @@ int *progressArr[numConcurrentJobs];
 int testMode = 0;
 
 /**
- * Removes all objects and frees memory.
+ * @brief Removes all objects and frees memory.
  */
 void cleanup() {
     if (isClean == 0) {
@@ -63,7 +67,7 @@ void cleanup() {
 }
 
 /**
- * Called when program quits, cleans up all objects and closes all child processes
+ * @brief Called when program quits, cleans up all objects and closes all child processes
  * @param sig The signal that causes the program to exit. e.g. INT or QUIT
  */
 void terminate (int sig) {
@@ -79,9 +83,9 @@ void terminate (int sig) {
 }
 
 /**
- * Find the next available slot in the array.
+ * @brief Find the next available slot in the array.
  * @param  slotsInUse The array to search.
- * @return            The first index / slot number that is free.
+ * @return            The first index or slot number that is free.
  */
 int findFreeSlot(int *slotsInUse) {
     for (int i = 0; i < numConcurrentJobs; i++) {
@@ -93,7 +97,7 @@ int findFreeSlot(int *slotsInUse) {
 }
 
 /**
- * Save the value to the shared memory slot so that the client can read it. [Thread safe]
+ * @brief Save the value to the shared memory slot so that the client can read it. [Thread safe]
  * @param slotNum The slot number to write to
  * @param value   The 32 number to write to the slot
  */
@@ -112,7 +116,7 @@ void writeToSlot(int slotNum, i32 value) {
 }
 
 /**
- * Reset the progress array for a specific slot.
+ * @brief Reset the progress array for a specific slot.
  * @param slot The slot number to reset.
  */
 void resetProgress(int slot) {
@@ -123,7 +127,7 @@ void resetProgress(int slot) {
 }
 
 /**
- * Read the progress from all threads working at a specific slot and
+ * @brief Read the progress from all threads working at a specific slot and
  * calculate the total progress for the slot.
  * @param  slot The slot number to read from
  * @return      The progress as a percentage
@@ -153,7 +157,7 @@ int getProgress(int slot) { // The number may fluctuate because any thread my wo
 }
 
 /**
- * Display a progress bar as a percentage in the terminal without new lines.
+ * @brief Display a progress bar as a percentage in the terminal without new lines.
  * @param progress The current progress out of 100.
  */
 void progresDisplay(int progress) {
@@ -169,7 +173,9 @@ void progresDisplay(int progress) {
 }
 
 /**
- * The function running in the Threads. The threads look for jobs to work on and
+ * @brief The function running in the Threads.
+ *
+ * The threads look for jobs to work on and
  * factorise the number given in the job. The result and progress is written to
  * global variables. The threads can also run in test mode.
  * @param  threadId The Thread number
@@ -235,7 +241,9 @@ void * worker (void * threadId) {
 }
 
 /**
- * Initialises the server and runs the client. The server process runs a thread pool and
+ * @brief Initialises the server and runs the client.
+ *
+ * The server process runs a thread pool and
  * waits for commands from the client. The server sends user commands to
  * the server and passes responses back to the user.
  * @param  argc Number of arguments given

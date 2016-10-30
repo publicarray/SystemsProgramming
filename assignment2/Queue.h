@@ -1,3 +1,11 @@
+/**
+ * @file Queue.h
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief Simple Linked List data structure
+ * @note Currently not in use
+ */
+
 #ifndef QUEUE_H
 #define QUEUE_H
 // linked list

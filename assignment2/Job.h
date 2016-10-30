@@ -1,3 +1,9 @@
+/**
+ * @file Job.h
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief An object for storing job parameters
+ */
 #ifndef JOB_H
 #define JOB_H
 

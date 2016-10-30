@@ -1,3 +1,9 @@
+/**
+ * @file Semaphore.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief An abstraction for Semaphores. Requires Mutex.c and ConditionVariable.c
+ */
 #include "Semaphore.h"
 #include "Mutex.h"
 #include "ConditionVariable.h"

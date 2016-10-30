@@ -1,3 +1,10 @@
+/**
+ * @file ConditionVariable.c
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief A POSIX Abstraction for Condition Variables.
+ */
+
 #include "ConditionVariable.h"
 #include "Mutex.h"
 

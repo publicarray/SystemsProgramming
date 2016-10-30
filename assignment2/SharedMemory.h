@@ -1,3 +1,10 @@
+/**
+ * @file SharedMemory.h
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief A POSIX abstraction for Shared Memory.
+ * @note Currently not in use
+ */
 #ifndef MEMORY_H
 #define MEMORY_H
 

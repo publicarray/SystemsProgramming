@@ -1,3 +1,10 @@
+/**
+ * @file Mutex.h
+ * @author Sebastian Schmidt
+ * @date 30 Oct 2016
+ * @brief A POSIX abstraction for Mutexes.
+ */
+
 #ifndef MUTEX_H
 #define MUTEX_H
 
