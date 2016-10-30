@@ -35,17 +35,22 @@
 /** @brief Cripple threads and slow them down, useful to see the progress %. (in ms) */
 #define slowThread 0.3f
 
-Semaphore jobSemaphore;
-Mutex jobQMutex, progressMutex;
-JobQueue jobQueue;
-int shmid, numThreads;
-void * sharedMem = NULL;
+Semaphore jobSemaphore; /**< Semaphore for signalling threads when Jobs are in the job Queue*/
+Mutex jobQMutex; /**< Mutex for the Job Queue */
+Mutex progressMutex; /**< Mutex for the ProgressArray */
+JobQueue jobQueue; /**< Job Queue for threads  */
+int shmid; /**< Shared memory id */
+int numThreads; /**< Current number of threads */
+void * sharedMem = NULL; /**< Shared memory pointer */
 int isClean = 0;/**< @brief Keep track if everything has been cleaned-up and freed. */
-char *clientflag = NULL, *serverflag = NULL, *progress = NULL;
-i32 *number = NULL, *slot = NULL;
-Mutex *mutexes = NULL;
-int *progressArr[numConcurrentJobs];
-int testMode = 0;
+char *clientflag = NULL; /**< Shared memory pointer to the clientflag */
+char *serverflag = NULL; /**< Shared memory pointer to the serverflags */
+char *progress = NULL; /**< Shared memory pointer to the progress slots */
+i32 *number = NULL; /**< Shared memory pointer to the number */
+i32 *slot = NULL;  /**< Shared memory pointer to the slots */
+Mutex *mutexes = NULL; /**< Mutex for every slot, used for synchronising access to the slots */
+int *progressArr[numConcurrentJobs]; /**< Multidimensional progress array to track progress per slot and thread */
+int testMode = 0; /**< Indicate whether test mode is currently activated */
 
 /**
  * @brief Removes all objects and frees memory.
