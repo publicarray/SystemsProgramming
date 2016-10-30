@@ -17,7 +17,7 @@
 #define numConcurrentJobs 10
 #define numBitShifts 32
 #define numOfThreads 32
-#define slowThread 0.1f // cripple threads and slow them down, useful to see the progress. (in ms)
+#define slowThread 0.3f // cripple threads and slow them down, useful to see the progress. (in ms)
 
 Semaphore jobSemaphore, doneSemaphore;
 Mutex jobQMutex, clientflagMutex, numberMutex, progressMutex;
