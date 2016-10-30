@@ -40,7 +40,7 @@ number-of-threads: default is 32 threads.
 ## Example
 
 ```bash
-main 15
+bin/main 15
 ```
 
 # Commands
