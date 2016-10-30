@@ -1,0 +1,134 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html; charset=utf8">
+<title>Flawfinder Results</title>
+<meta name="author" content="David A. Wheeler">
+<meta name="keywords" lang="en" content="flawfinder results, security scan">
+</head>
+<body>
+<h1>Flawfinder Results</h1>
+Here are the security scan results from
+<a href="http://www.dwheeler.com/flawfinder">Flawfinder version 1.31</a>,
+(C) 2001-2014 <a href="http://www.dwheeler.com">David A. Wheeler</a>.
+Number of rules (primarily dangerous function names) in C/C++ ruleset: 169
+<p>
+Examining ./ConditionVariable.c <br>
+Examining ./ConditionVariable.h <br>
+Examining ./Job.c <br>
+Examining ./Job.h <br>
+Examining ./JobQueue.c <br>
+Examining ./JobQueue.h <br>
+Examining ./lib.c <br>
+Examining ./lib.h <br>
+Examining ./main.c <br>
+Examining ./Mutex.c <br>
+Examining ./Mutex.h <br>
+Examining ./Queue.c <br>
+Examining ./Queue.h <br>
+Examining ./Semaphore.c <br>
+Examining ./Semaphore.h <br>
+Examining ./SharedMemory.c <br>
+Examining ./SharedMemory.h <br>
+Examining ./shmtest.c <br>
+Examining ./shmtest2.c <br>
+Examining ./test0.c <br>
+Examining ./test2.c <br>
+Examining ./test3.c <br>
+Examining ./Thread.c <br>
+Examining ./Thread.h <br>
+
+<h2>Final Results</h2>
+<ul>
+<li>./main.c:246: <b>  [2] </b> (integer) <i> atoi:
+  Unless checked, the resulting number can exceed the expected range (<a
+  href="http://cwe.mitre.org/data/definitions/190.html">CWE-190</a>). If
+  source untrusted, check both minimum and maximum, even if the input had no
+  minus sign (large numbers can roll over into negative number; consider
+  saving to an unsigned value if that is intended). </i>
+<li>./main.c:331: <b>  [2] </b> (buffer) <i> char:
+  Statically-sized arrays can be improperly restricted, leading to potential
+  overflows or other issues (CWE-119:<a
+  href="http://cwe.mitre.org/data/definitions/120.html">CWE-120</a>). Perform
+  bounds checking, use functions that limit length, or ensure that the size
+  is larger than the maximum possible length. </i>
+<li>./main.c:397: <b>  [2] </b> (integer) <i> atoi:
+  Unless checked, the resulting number can exceed the expected range (<a
+  href="http://cwe.mitre.org/data/definitions/190.html">CWE-190</a>). If
+  source untrusted, check both minimum and maximum, even if the input had no
+  minus sign (large numbers can roll over into negative number; consider
+  saving to an unsigned value if that is intended). </i>
+<li>./main.c:400: <b>  [2] </b> (integer) <i> atoi:
+  Unless checked, the resulting number can exceed the expected range (<a
+  href="http://cwe.mitre.org/data/definitions/190.html">CWE-190</a>). If
+  source untrusted, check both minimum and maximum, even if the input had no
+  minus sign (large numbers can roll over into negative number; consider
+  saving to an unsigned value if that is intended). </i>
+<li>./main.c:409: <b>  [2] </b> (integer) <i> atoi:
+  Unless checked, the resulting number can exceed the expected range (<a
+  href="http://cwe.mitre.org/data/definitions/190.html">CWE-190</a>). If
+  source untrusted, check both minimum and maximum, even if the input had no
+  minus sign (large numbers can roll over into negative number; consider
+  saving to an unsigned value if that is intended). </i>
+<li>./test2.c:86: <b>  [2] </b> (buffer) <i> char:
+  Statically-sized arrays can be improperly restricted, leading to potential
+  overflows or other issues (CWE-119:<a
+  href="http://cwe.mitre.org/data/definitions/120.html">CWE-120</a>). Perform
+  bounds checking, use functions that limit length, or ensure that the size
+  is larger than the maximum possible length. </i>
+<li>./test2.c:112: <b>  [2] </b> (integer) <i> atoi:
+  Unless checked, the resulting number can exceed the expected range (<a
+  href="http://cwe.mitre.org/data/definitions/190.html">CWE-190</a>). If
+  source untrusted, check both minimum and maximum, even if the input had no
+  minus sign (large numbers can roll over into negative number; consider
+  saving to an unsigned value if that is intended). </i>
+<li>./test3.c:86: <b>  [2] </b> (buffer) <i> char:
+  Statically-sized arrays can be improperly restricted, leading to potential
+  overflows or other issues (CWE-119:<a
+  href="http://cwe.mitre.org/data/definitions/120.html">CWE-120</a>). Perform
+  bounds checking, use functions that limit length, or ensure that the size
+  is larger than the maximum possible length. </i>
+<li>./test3.c:112: <b>  [2] </b> (integer) <i> atoi:
+  Unless checked, the resulting number can exceed the expected range (<a
+  href="http://cwe.mitre.org/data/definitions/190.html">CWE-190</a>). If
+  source untrusted, check both minimum and maximum, even if the input had no
+  minus sign (large numbers can roll over into negative number; consider
+  saving to an unsigned value if that is intended). </i>
+<li>./lib.c:54: <b>  [1] </b> (buffer) <i> strlen:
+  Does not handle strings that are not \0-terminated; if given one it may
+  perform an over-read (it could cause a crash if unprotected) (<a
+  href="http://cwe.mitre.org/data/definitions/126.html">CWE-126</a>). </i>
+<li>./lib.c:126: <b>  [1] </b> (buffer) <i> strlen:
+  Does not handle strings that are not \0-terminated; if given one it may
+  perform an over-read (it could cause a crash if unprotected) (<a
+  href="http://cwe.mitre.org/data/definitions/126.html">CWE-126</a>). </i>
+<li>./lib.c:126: <b>  [1] </b> (buffer) <i> strlen:
+  Does not handle strings that are not \0-terminated; if given one it may
+  perform an over-read (it could cause a crash if unprotected) (<a
+  href="http://cwe.mitre.org/data/definitions/126.html">CWE-126</a>). </i>
+<li>./lib.c:127: <b>  [1] </b> (buffer) <i> strlen:
+  Does not handle strings that are not \0-terminated; if given one it may
+  perform an over-read (it could cause a crash if unprotected) (<a
+  href="http://cwe.mitre.org/data/definitions/126.html">CWE-126</a>). </i>
+</ul>
+<h2>Analysis Summary</h2>
+<p>
+Hits = 13
+<br>
+Lines analyzed = 2113 in approximately 0.05 seconds (45162 lines/second)
+<br>
+Physical Source Lines of Code (SLOC) = 1416
+<br>
+Hits@level = [0]   0 [1]   4 [2]   9 [3]   0 [4]   0 [5]   0 <br>
+Hits@level+ = [0+]  13 [1+]  13 [2+]   9 [3+]   0 [4+]   0 [5+]   0 <br>
+Hits/KSLOC@level+ = [0+] 9.18079 [1+] 9.18079 [2+] 6.35593 [3+]   0 [4+]   0 [5+]   0 <br>
+Minimum risk level = 1
+<br>
+Not every hit is necessarily a security vulnerability.
+<br>
+There may be other security vulnerabilities; review your code!
+<br>
+See '<a href="http://www.dwheeler.com/secure-programs">Secure Programming for Linux and Unix HOWTO</a>'
+(<a href="http://www.dwheeler.com/secure-programs">http://www.dwheeler.com/secure-programs</a>) for more information.
+</body>
+</html>
