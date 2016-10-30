@@ -17,7 +17,7 @@
 #define numConcurrentJobs 10
 #define numBitShifts 32
 #define numOfThreads 32
-#define slowThread 0.1f
+#define slowThread 0.1f // cripple threads and slow them down, useful to see the progress. (in ms)
 
 Semaphore jobSemaphore, doneSemaphore;
 Mutex jobQMutex, clientflagMutex, numberMutex, progressMutex;
@@ -93,7 +93,7 @@ void resetProgress(int slot) {
     }
 }
 
-int getProgress(int slot) {
+int getProgress(int slot) { // The number may fluctuate because any thread my work for any job/slot
     if (slot > numConcurrentJobs) {
         printf("getProgress() slot number too high! %d", slot);
         return -1;
@@ -315,7 +315,7 @@ int main(int argc, char const *argv[]) {
                     if (slotProgress >= 100) {
                         serverflag[i] = '2'; // notify client that the job is done
                         slotsInUse[i] = 0;
-//                        resetProgress(i);
+                        resetProgress(i);
                     }
                 }
             }
@@ -348,9 +348,9 @@ int main(int argc, char const *argv[]) {
 
         // read data from slots
         for (i = 0; i < numConcurrentJobs; i++) {
-
-            if (outstandingJobs > 0 && duration >= 0.5f && progress[i] != 'x' && !testMode) {
-                printf("%*d:%*d%% ", 2, i, 3, progress[i]);
+            int temp = 0;
+            if (outstandingJobs > 0 && duration >= 0.5f && (temp = progress[i]) != 'x' && !testMode) {
+                printf("%*d:%*d%% ", 2, i, 3, temp);
                 showedProgress = 1;
             }
 
@@ -369,7 +369,6 @@ int main(int argc, char const *argv[]) {
                 }
                 printf(BLU "Slot # %d is done processing %d in %f seconds" NRM "\n", i, requests[i].number, requests[i].duration(&requests[i]));
                 progress[i] = 'x';
-                // requests[i] = newRequest(-1);
                 serverflag[i] = '0';
                 outstandingJobs--;
                 startTime = getTime();
@@ -420,7 +419,7 @@ int main(int argc, char const *argv[]) {
                 outstandingJobs+=3;
             } else {
                 int id = *number; // read server reply
-                requests[id] = newRequest(temp); // // remember which slots have jobs running
+                requests[id] = newRequest(temp); // remember which slots have jobs running
                 outstandingJobs++;
             }
         }
