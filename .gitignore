@@ -18,4 +18,22 @@ assignment/bin/server
 # CMake
 CMakeFiles
 
+# Autotools
+# http://www.gnu.org/software/autoconf
+
+autom4te.cache
+autoscan.log
+autoscan-*.log
+aclocal.m4
+compile
+config.h.in
+configure.scan
+depcomp
+missing
+stamp-h1
+.deps
+config.log
+config.status
+
 assignment2/docs/
+
