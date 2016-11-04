@@ -31,44 +31,48 @@ static Number __addNumber(Number * self, char * buffer) {
     size_t j = bufferLen-1;
     size_t k = sum.bufferSize-1;
 
-    char c1[2];
-    char c2[2];
-    int temp = 0;
+    char c1;
+    char c2;
+    int digit = 0;
     int carry = 0;
     int nextCarry = 0;
 
     for (; k > 0; --k) {
+        if (i+1 == 0 && j+1 == 0) {
+            break;
+        }
+
         if (i+1 > 0) {
-            c1[0] = self->data[i];
+            c1 = self->data[i];
             --i;
         }
         if (j+1 > 0) {
-            c2[0] = buffer[j];
+            c2 = buffer[j];
             --j;
         }
 
-        temp = atoi(c1) + atoi(c2);
+        digit = (c1 - '0') + (c2 - '0'); // https://stackoverflow.com/questions/2915725/using-atoi-with-char#2915784
 
-        if (temp > 9) {
-            nextCarry = temp/10;
-            temp -= nextCarry * 10;
+        if (digit > 9) {
+            nextCarry = digit/10;
+            digit -= nextCarry * 10;
         }
 
-        // printf("%li %li %li x:%c y:%c sum:%i carry:%i\n", i, j, k, self->data[i], buffer[j], temp, carry);
+        // printf("%li %li %li x:%c y:%c sum:%i carry:%i\n", i, j, k, c1, c2, digit, carry);
         if (carry) {
-            sum.data[k] = temp + carry + '0';
+            sum.data[k] = digit + carry + '0';
             carry = 0;
         } else  {
-            sum.data[k] = temp + '0';
+            sum.data[k] = digit + '0';
         }
-        // sprintf(&r.data[k], "%i", temp);
+        // sprintf(&r.data[k], "%i", digit);
         // printf("%c\n", sum.data[k]);
 
         sum.digits++;
         carry = nextCarry;
         nextCarry = 0;
-        c1[0] = '\0';
-        c2[0] = '\0';
+        c1 = '0';
+        c2 = '0';
     }
     sum.sign = '+'; // todo
     return sum;
@@ -103,9 +107,12 @@ Number initNumber(size_t bufferSize) {
 // assume null terminated string
 Number newNumber(char * buffer) {
     Number n = initNumber(strlen(buffer));
-    n.digits = n.bufferSize; // todo
-    n.sign = '+'; // todo
-
+    n.digits = n.bufferSize;
+    n.sign = '+';
+    if (buffer[0] == '-') {
+        n.sign = '-';
+        buffer++;
+    }
     memcpy(n.data, buffer, n.bufferSize); // copy data
     return n;
 }

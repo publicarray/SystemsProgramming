@@ -29,8 +29,8 @@ int main(int argc, char const *argv[])
     sum.free(&sum);
     //////////
     puts("");
-    x = newNumber("0");
-    y = newNumber("1927");
+    x = newNumber("1927");
+    y = newNumber("-1");
     x.print(&x);
     y.print(&y);
     sum = x.add(&x, &y);
