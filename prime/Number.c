@@ -38,7 +38,7 @@ static Number __addNumber(Number * self, char * buffer) {
     int nextCarry = 0;
 
     for (; k > 0; --k) {
-        if (i+1 == 0 && j+1 == 0) {
+        if (i+1 == 0 && j+1 == 0 && carry == 0) {
             break;
         }
 
@@ -116,4 +116,3 @@ Number newNumber(char * buffer) {
     memcpy(n.data, buffer, n.bufferSize); // copy data
     return n;
 }
-
