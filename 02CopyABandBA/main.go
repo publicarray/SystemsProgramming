@@ -14,12 +14,12 @@ func main() {
     t1 := time.Now();
     copyAB(src, dest)
     t2 := time.Now();
-    fmt.Printf("copyAB - duration: %s\n", t2.Sub(t1)) // wall time
+    fmt.Printf("copyAB - duration: %s\n", t2.Sub(t1))
 
     t1 = time.Now();
     copyBA(src, dest)
     t2 = time.Now();
-    fmt.Printf("copyAB - duration: %s\n", t2.Sub(t1)) // wall time
+    fmt.Printf("copyAB - duration: %s\n", t2.Sub(t1))
 }
 
 
