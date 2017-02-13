@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define SIZE 1024// 1024 / 256
+#define SIZE 512// 1024 / 256
 
 void CopyAB (int* src[SIZE][SIZE], int* dest[SIZE][SIZE]) {
     int row, col;
