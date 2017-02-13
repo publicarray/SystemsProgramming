@@ -26,17 +26,20 @@ int main() {
     clock_t t1, t2;
     int* src[SIZE][SIZE];
     int* dest[SIZE][SIZE];
+    double dur;
 
     printf("SIZE: %i\n", SIZE);
 
     t1 = clock();
     CopyAB(src, dest);
     t2 = clock();
-    printf("copyAB - start:%ld end:%ld duration: %ld\n", t1, t2, (t2 - t1));
+    dur = 1000.0*(t2-t1)/CLOCKS_PER_SEC;
+    printf("copyAB - start:%ld end:%ld duration:%ld CPU time used: %.4f ms\n", t1, t2, t2-t1, dur);
 
     t1 = clock();
     CopyBA(src, dest);
     t2 = clock();
-    printf("copyBA - start:%ld end:%ld duration: %ld\n", t1, t2, (t2 - t1));
+    dur = 1000.0*(t2-t1)/CLOCKS_PER_SEC;
+    printf("copyBA - start:%ld end:%ld duration:%ld CPU time used: %.4f ms\n", t1, t2, t2-t1, dur);
     return 0;
 }

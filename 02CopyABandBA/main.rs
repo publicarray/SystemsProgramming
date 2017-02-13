@@ -33,10 +33,12 @@ fn main() {
     let start = unsafe { clock() };
     copy_ab(&src, &mut dest);
     let end = unsafe { clock() };
-    println!("copyAB - start:{} end:{} duration:{}", start, end, end - start);
+    let dur = ((end-start) as f32) / 1000.0;
+    println!("copyAB - start:{} end:{} duration:{} CPU time used:{} ms", start, end, end-start, dur);
 
     let start = unsafe { clock() };
     copy_ba(&src, &mut dest);
     let end = unsafe { clock() };
-    println!("copyBA - start:{} end:{} duration:{}", start, end, end - start);
+    let dur = ((end-start) as f32) / 1000.0;
+    println!("copyBA - start:{} end:{} duration:{} CPU time used:{} ms", start, end, end-start, dur);
 }
