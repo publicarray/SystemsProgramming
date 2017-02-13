@@ -2,21 +2,21 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MYSIZE 512// 1024 / 256
+#define SIZE 1024// 1024 / 256
 
-void CopyAB (int* src[MYSIZE][MYSIZE], int* dest[MYSIZE][MYSIZE]) {
+void CopyAB (int* src[SIZE][SIZE], int* dest[SIZE][SIZE]) {
     int row, col;
-    for(row = 0; row < MYSIZE; row++) {
-        for(col = 0; col < MYSIZE; col++) {
+    for(row = 0; row < SIZE; row++) {
+        for(col = 0; col < SIZE; col++) {
            dest[row][col] = src[row][col];
        }
     }
 }
 
-void CopyBA (int* src [MYSIZE][MYSIZE], int* dest [MYSIZE][MYSIZE]) {
+void CopyBA (int* src [SIZE][SIZE], int* dest [SIZE][SIZE]) {
     int row, col;
-    for(row = 0; row < MYSIZE; row++) {
-        for(col = 0; col < MYSIZE; col++) {
+    for(row = 0; row < SIZE; row++) {
+        for(col = 0; col < SIZE; col++) {
            dest[col][row] = src[col][row];
         }
     }
@@ -24,8 +24,10 @@ void CopyBA (int* src [MYSIZE][MYSIZE], int* dest [MYSIZE][MYSIZE]) {
 
 int main() {
     clock_t t1, t2;
-    int* src[MYSIZE][MYSIZE];
-    int* dest[MYSIZE][MYSIZE];
+    int* src[SIZE][SIZE];
+    int* dest[SIZE][SIZE];
+
+    printf("SIZE: %i\n", SIZE);
 
     t1 = clock();
     CopyAB(src, dest);
