@@ -1,10 +1,7 @@
 // https://stackoverflow.com/questions/36716567/is-there-a-rust-equivalent-to-the-clock-function-in-c
 extern crate libc;
-
-mod clock {
-    extern {
-        pub fn clock() -> ::libc::clock_t;
-    }
+extern {
+    pub fn clock() -> ::libc::clock_t;
 }
 
 const SIZE:usize = 512;
@@ -15,13 +12,13 @@ fn main() {
     let src: [[i32; SIZE]; SIZE] = [[0; SIZE]; SIZE];
     let mut dest = [[0i32; SIZE]; SIZE];
 
-    let start = unsafe { clock::clock() };
+    let start = unsafe { clock() };
     copy_ab(&src, &mut dest);
-    let end = unsafe { clock::clock() };
+    let end = unsafe { clock() };
     println!("AB - start:{} end:{} duration:{}", start, end, end - start);
-    let start = unsafe { clock::clock() };
+    let start = unsafe { clock() };
     copy_ba(&src, &mut dest);
-    let end = unsafe { clock::clock() };
+    let end = unsafe { clock() };
     println!("BA - start:{} end:{} duration:{}", start, end, end - start);
 
 }
