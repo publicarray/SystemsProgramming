@@ -37,3 +37,6 @@ config.status
 
 assignment2/docs/
 
+# rust
+*/target
+main

@@ -1,0 +1,11 @@
+[package]
+name = "02_copy_ab_and_ba"
+version = "0.1.0"
+authors = ["Sebastian Schmidt <publicarray@icloud.com>"]
+
+[dependencies]
+libc = "0.2.0"
+
+[[bin]]
+name = "02CopyABandBA"
+path = "main.rs"
