@@ -28,7 +28,7 @@ int main() {
     int* dest[SIZE][SIZE];
     double dur;
 
-    printf("SIZE: %i\n", SIZE);
+    printf("SIZE= %i\n", SIZE);
 
     t1 = clock();
     CopyAB(src, dest);
