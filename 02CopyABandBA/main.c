@@ -30,12 +30,11 @@ int main() {
     t1 = clock();
     CopyAB(src, dest);
     t2 = clock();
-    float diff1 = (float) (t2 - t1);
+    printf("copyAB - start:%ld end:%ld duration: %ld\n", t1, t2, (t2 - t1));
 
     t1 = clock();
     CopyBA(src, dest);
     t2 = clock();
-    float diff2 = (float) (t2 - t1);
-    printf("copyAB: %f CopyBA: %f\n", diff1, diff2);
+    printf("copyBA - start:%ld end:%ld duration: %ld\n", t1, t2, (t2 - t1));
     return 0;
 }
