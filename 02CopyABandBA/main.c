@@ -24,8 +24,8 @@ void CopyBA (int* src [SIZE][SIZE], int* dest [SIZE][SIZE]) {
 
 int main() {
     clock_t t1, t2;
-    int* src[SIZE][SIZE];
-    int* dest[SIZE][SIZE];
+    int* src[SIZE][SIZE] = {};
+    int* dest[SIZE][SIZE] = {};
     double dur;
 
     printf("SIZE= %i\n", SIZE);

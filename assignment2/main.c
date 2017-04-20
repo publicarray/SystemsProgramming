@@ -413,7 +413,7 @@ int main(int argc, char const *argv[]) {
         for (i = 0; i < numConcurrentJobs; i++) {
             int temp = 0;
             if (outstandingJobs > 0 && duration >= 0.5f && (temp = progress[i]) != 'x' && !testMode) {
-                printf("%*d:%*d%% ", 2, i, 3, temp);
+                int numCharsPrinted = printf("%*d:%*d%% ", 2, i, 3, temp);
                 showedProgress = 1;
             }
 
