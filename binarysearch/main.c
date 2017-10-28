@@ -2,7 +2,7 @@
 #include <math.h>
 
 // Choose a number from 1 to 100(maxNum)
-// the aim is to guess the correct number in 7 gesses
+// the aim is to guess the correct number in 7 guesses
 // I will tell you if you are too high or to low
 
 int answer = 55; // Your chosen number
@@ -21,9 +21,9 @@ int main (int argc, char const *argv[]) {
     return 0;
 }
 
-// -1 toHigh
+// -1 tooHigh
 // 0 correct answer
-// 1 toLow
+// 1 tooLow
 int guessTheAnswer(int guess) {
     if (answer < guess) {
         return -1;
@@ -50,16 +50,16 @@ void binarySearch () {
 
     int maxGuesses = log2(maxNum);
     printf("binarySearch - maxGuesses: %d\n", maxGuesses);
-    while (guesses <= maxGuesses) { //Logorithmic time -> O log (n)
+    while (guesses <= maxGuesses) { // Logorithmic time -> O log (n)
         if (verbose == 1) {
             printf("binarySearch - guess: %d\n", midPoint);
         }
 
         guesses++;
         int test = guessTheAnswer(midPoint);
-        if (test == -1) { // -1 toHigh
+        if (test == -1) { // -1 tooHigh
             upperBound = midPoint;
-        } else if (test == 1 ) { // 1 toLow
+        } else if (test == 1 ) { // 1 tooLow
             lowerBound = midPoint;
         } else {
             printf("binarySearch - found answer: %d in %d guesses\n", midPoint, guesses);
