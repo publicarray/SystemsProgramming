@@ -12,7 +12,7 @@ typedef struct String_Struct {
 void strInit(String* self);
 void strCInit(String* self, char* init);
 
-int strLength(String* self);
+unsigned int strLength(String* self);
 void strAddChar(String* self, char c);
 void strConcatC(String* self, char c);
 void strConcat(String* self, String* input);

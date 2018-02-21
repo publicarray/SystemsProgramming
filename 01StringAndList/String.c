@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "string.h"
+#include "String.h"
 
 void strInit(String* self) {
     self->bufferLength = BUFSIZ; // BUFSIZ size of the buffer used by setbuf, may be an optimised size for the OS
     self->length = 0;
-    self->data = (char *) malloc(sizeof(char *) * self->bufferLength);
+    self->data = (char *) calloc(1, sizeof(char *) * self->bufferLength);
 }
 
 void strCInit(String* self, char* init) {
@@ -15,9 +15,9 @@ void strCInit(String* self, char* init) {
     strcpy(self->data, init);
 }
 
-int strLength(String* self) {
+unsigned int strLength(String* self) {
     // return strlen(self->data);
-    return (int) self->length;
+    return self->length;
 }
 
 void strAddChar(String* self, char c) {
@@ -35,12 +35,11 @@ void strConcatC(String* self, char c) {
 void strConcat(String* self, String* input) {
     if (self == NULL) {return;}
 
-    int newLength = self->length + input->length;
-    strResize(self, newLength);
+    strResize(self, input->length);
     for (int i = 0; i < input->length; i++) {
         self->data[self->length + i] = input->data[i];
     }
-    self->length = newLength;
+    self->length += input->length;
 }
 
 void strConcatCS(String* self, char* input) {
@@ -51,6 +50,7 @@ void strConcatCS(String* self, char* input) {
         self->data[self->length + i] = input[i];
     }
     self->length += strlen(input);
+    self->data[self->length] = 0x00;
     // printf("self-> length:%i bufferlength:%i\n", self->length, self->bufferLength);
 }
 
@@ -62,23 +62,19 @@ void strOverrideCS(String* self, char* input) {
     self->data[self->length] = 0x00;
 }
 
-void strConcatI(String* self, int input) { // TODO: Refactor
+void strConcatI(String* self, int number) {
     if (self == NULL) {return;}
 
-    // printf("length: %d\n", floor(log10(abs(50))));
-    char buffer[500];
-    snprintf(buffer, 500, "%d", input);
-    buffer[strlen(buffer)] = 0x00;
-    // printf("length1:%i\n", (int) strlen(buffer));
+    char buffer[500] = { 0 };
+    snprintf(buffer, 500, "%d", number);
     strConcatCS(self, buffer);
 }
 
-void strConcatF(String* self, float input) { // TODO: Refactor
+void strConcatF(String* self, float number) { // TODO: Refactor
     if (self == NULL) {return;}
 
-    char buffer[500];
-    snprintf(buffer, 500, "%.10f", input);
-    buffer[strlen(buffer)] = 0x00;
+    char buffer[500] = { 0 };
+    snprintf(buffer, 500, "%.10f", number);
     strConcatCS(self, buffer);
 }
 

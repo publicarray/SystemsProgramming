@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include "string.h"
+#include "String.h"
 #include "List.h"
 
 int main() {
 
     List array; initList(&array);
+
     float sample = 4.0;
     float* newData = (float*) addList(&array, &sample, sizeof (sample));
     printf("%f\n\n", *newData);
@@ -57,5 +57,10 @@ int main() {
     strConcatI(&str2, value);
     strPrint(&str2);
     printf("str2 length: %i\n", strLength(&str2));
+    value = 0;
+    strConcatI(&str2, value);
+    strPrint(&str2);
+    printf("str2 length: %i\n", strLength(&str2));
+
     return 0;
 }
